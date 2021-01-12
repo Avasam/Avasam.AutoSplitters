@@ -6,12 +6,14 @@ Alternatively, you can download the latest `.asl` file. Then add a Scriptable Au
 ## Officials
 
 You can access the following autosplitters directly from Livesplit, no need to download anything.  
-[Pitfall: The Lost Expedition](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Pitfall:%20The%20Lost%20Expedition)  
-[RiME](https://github.com/Avasam/Avasam.Autosplitters/tree/main/RiME)  
+
+- **[Pitfall: The Lost Expedition](https://github.com/Avasam/Avasam.AutoSplitters/tree/main/Pitfall%20The%20Lost%20Expedition)**  
+- **[RiME](https://github.com/Avasam/Avasam.Autosplitters/tree/main/RiME)**  
 
 ## Unofficials
 
-These are the autosplitters I didn't feel like publishing officially, either because they're buggy, not up to my standard, a modification of an official one, or I'm still working on it.  
-[Pony Island](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Pony%20Island)  
-[The Talos Principle](https://github.com/Avasam/Autosplitters)  
-[Mappy Land](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Mappy%20Land)  
+These are the autosplitters I didn't publish officially, either because they're buggy, I'm still working on it, or a modification of an official one.  
+
+- **[Pony Island](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Pony%20Island)**  
+- **[The Talos Principle](https://github.com/Avasam/Autosplitters)**  
+- **[Mappy Land](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Mappy%20Land)**  
