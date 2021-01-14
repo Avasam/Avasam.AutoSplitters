@@ -1,4 +1,4 @@
-# RiME-AutoSplitter
+# RiME AutoSplitter
 
 LiveSplit AutoSplitter for RiME on PC  
 
@@ -13,7 +13,7 @@ LiveSplit AutoSplitter for RiME on PC
 
 ### Any%
 
-See the RiME Resources page on SRC: https://www.speedrun.com/rime/resources
+See the RiME [Resources](https://www.speedrun.com/rime/resources) page on SRC.
 
 ### Any% (without Tilt Clip)
 
