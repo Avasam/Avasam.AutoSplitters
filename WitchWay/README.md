@@ -4,6 +4,5 @@ LiveSplit AutoSplitter for Witchay
 
 ## Possible future improvements
 
-- Split on Red Door
-- Split on Blue Door
-- Split on bucket level unlock
+- Split on Doors
+- Split on more bucket level unlock
