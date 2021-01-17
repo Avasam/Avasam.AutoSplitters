@@ -1,4 +1,7 @@
 state("WitchWay") {
+	double isInGame: 0x16B8B00;
+	double didIntro: 0x16BE820, 0x34, 0x10, 0x154, 0x0;
+
 	double hasWand: 0x16BE820, 0x34, 0x10, 0xE8, 0x0;
 
 	double hasSkull: 0x16BE820, 0x34, 0x10, 0x118, 0x0;
@@ -25,6 +28,10 @@ state("WitchWay") {
 
 startup { // When the script loads
 	print("============================= SCRIPT STARTUP =============================");
+	// At 60 FPS, it takes 51 frames between "Select" being visibly pressed on screen and when the autosplitter starts.
+	// Which is also the first frame of complete darkness.
+	// The Select button being pressed is consistent with GamePad input viewer and 4 frames before the sound starts.
+	settings.Add("reminder", false, "Reminder: Start the timer at 0.85 ! (This option does nothing)");
 	settings.Add("hasWand", true, "Wand obtained");
 
 	settings.Add("Artefacts", true);
@@ -38,28 +45,45 @@ startup { // When the script loads
 	settings.Add("hasBlueKey", true, "Blue Key obtained", "Keys");
 
 	// settings.Add("Doors", false);
-	// settings.Add("oKeyDoor_REDDOOR_Locked", true, "Red Door Unlocked", "Doors");
-	// settings.Add("oKeyDoor_GREENDOOR_Locked", true, "Green Door Unlocked", "Doors");
-	// settings.Add("oKeyDoor_BLUEDOOR_Locked", true, "Blue Door Unlocked", "Doors");
+	// settings.Add("oKeyDoor_REDDOOR_Locked", true, "Red Door unlocked", "Doors");
+	// settings.Add("oKeyDoor_GREENDOOR_Locked", true, "Green Door unlocked", "Doors");
+	// settings.Add("oKeyDoor_BLUEDOOR_Locked", true, "Blue Door unlocked", "Doors");
 
 	settings.Add("Bucket", true);
-	// 0-1 are always unlocked. 5-9 are never unlocked. Level 5 is also exit.
-	settings.Add("bucketUnlocked", true, "Bucket Unlocked", "Bucket");
-	// settings.Add("bucketStopUnlocked_2", true, "Floor -2 3/4 Unlocked", "Bucket");
-	// settings.Add("bucketStopUnlocked_3", true, "Floor -2 Unlocked", "Bucket");
-	// settings.Add("bucketStopUnlocked_4", true, "Floor -1 Unlocked", "Bucket");
+	// 0-1 are always unlocked. 6-9 are never unlocked. 5 exit and unlocked with 4.
+	settings.Add("bucketUnlocked", true, "Floor -3 unlocked", "Bucket");
+	settings.Add("bucketStopUnlocked_2", true, "Floor -2¾ unlocked", "Bucket");
+	settings.Add("bucketStopUnlocked_3", true, "Floor -2 unlocked", "Bucket");
+	settings.Add("bucketStopUnlocked_4", true, "Floor -1 unlocked", "Bucket");
 	settings.Add("bucketExitWell", true, "Exit the well", "Bucket");
 
 	settings.Add("bunnyCount", true, "Bunny caught");
 	settings.Add("secretCount", false, "Eye opened");
+
+	vars.bucketStopUnlocked_2 = false;
+	vars.bucketStopUnlocked_3 = false;
+	vars.bucketStopUnlocked_4 = false;
 }
 
-update {
-	if (old.bucketCurrentStop != current.bucketCurrentStop) print("bucketCurrentStop: " + current.bucketCurrentStop.ToString());
-	if (old.bucketNextStop != current.bucketNextStop) print("bucketNextStop: " + current.bucketNextStop.ToString());
-	// if (old.oKeyDoor_REDDOOR_Locked != current.oKeyDoor_REDDOOR_Locked) print("oKeyDoor_REDDOOR_Locked: " + current.oKeyDoor_REDDOOR_Locked.ToString());
-	// if (old.oKeyDoor_GREENDOOR_Locked != current.oKeyDoor_GREENDOOR_Locked) print("oKeyDoor_GREENDOOR_Locked: " + current.oKeyDoor_GREENDOOR_Locked.ToString());
-	// if (old.oKeyDoor_BLUEDOOR_Locked != current.oKeyDoor_BLUEDOOR_Locked) print("oKeyDoor_BLUEDOOR_Locked: " + current.oKeyDoor_BLUEDOOR_Locked.ToString());
+/* Main methods */
+update { // Returning false blocks everything but split
+	var debugString = "";
+	if (old.bucketCurrentStop != current.bucketCurrentStop) debugString += "bucketCurrentStop: " + current.bucketCurrentStop.ToString() + Environment.NewLine;
+	if (old.bucketNextStop != current.bucketNextStop) debugString += "bucketNextStop: " + current.bucketNextStop.ToString() + Environment.NewLine;
+	// if (old.oKeyDoor_REDDOOR_Locked != current.oKeyDoor_REDDOOR_Locked) debugString += "oKeyDoor_REDDOOR_Locked: " + current.oKeyDoor_REDDOOR_Locked.ToString() + Environment.NewLine;
+	// if (old.oKeyDoor_GREENDOOR_Locked != current.oKeyDoor_GREENDOOR_Locked) debugString += "oKeyDoor_GREENDOOR_Locked: " + current.oKeyDoor_GREENDOOR_Locked.ToString() + Environment.NewLine;
+	// if (old.oKeyDoor_BLUEDOOR_Locked != current.oKeyDoor_BLUEDOOR_Locked) debugString += "oKeyDoor_BLUEDOOR_Locked: " + current.oKeyDoor_BLUEDOOR_Locked.ToString() + Environment.NewLine;
+	if (debugString != "") print(debugString);
+}
+
+/* Only runs when the timer is stopped */
+start { // Starts the timer upon returning true
+	return current.didIntro == 0;
+}
+
+/* Only runs when the timer is running */
+reset { // Resets the timer upon returning true
+	return old.didIntro == 1 && current.didIntro == 0;
 }
 
 split { // Splits upon returning true if reset isn't explicitly returning true
@@ -81,7 +105,20 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	if (settings["bucketUnlocked"] &&
 		old.bucketNextStop == 10 && current.bucketNextStop == 0 &&
 		old.bucketCurrentStop == 10 && current.bucketCurrentStop == 10) return true;
-	// Pointer to the bucket is loss, but the player was going from floor 4 to 5
+	// When First calling the bucket to a certain floor
+	// To floor -2¾ (#2) from above (#3 or #4)
+	if (settings["bucketStopUnlocked_2"] && !vars.bucketStopUnlocked_2 &&
+		old.bucketNextStop >= 3 && current.bucketNextStop == 2 &&
+		old.bucketCurrentStop >= 3 && current.bucketCurrentStop >= 3) return vars.bucketStopUnlocked_2 = true;
+	// To floor -2 (#3) from -3 (#1)
+	if (settings["bucketStopUnlocked_3"] && !vars.bucketStopUnlocked_3 &&
+		old.bucketNextStop == 1 && current.bucketNextStop == 3 &&
+		old.bucketCurrentStop == 1 && current.bucketCurrentStop == 1) return vars.bucketStopUnlocked_3 = true;
+	// To floor -1 (#4) from -2 (#3)
+	if (settings["bucketStopUnlocked_4"] && !vars.bucketStopUnlocked_4 &&
+		old.bucketNextStop == 3 && current.bucketNextStop == 4 &&
+		old.bucketCurrentStop == 3 && current.bucketCurrentStop == 3) return vars.bucketStopUnlocked_4 = true;
+	// Pointer to the bucket is loss, but the player was going from floor -1 (#4) to outside (#5)
 	if (settings["bucketExitWell"] &&
 		old.bucketNextStop == 5 && current.bucketNextStop == 0 &&
 		old.bucketCurrentStop == 4 && current.bucketCurrentStop == 0) return true;
