@@ -68,6 +68,8 @@ startup { // When the script loads
 /* Main methods */
 update { // Returning false blocks everything but split
 	var debugString = "";
+	if (old.didIntro != current.didIntro) debugString += "didIntro: " + current.didIntro.ToString() + Environment.NewLine;
+	if (old.isInGame != current.isInGame) debugString += "isInGame: " + current.isInGame.ToString() + Environment.NewLine;
 	if (old.bucketCurrentStop != current.bucketCurrentStop) debugString += "bucketCurrentStop: " + current.bucketCurrentStop.ToString() + Environment.NewLine;
 	if (old.bucketNextStop != current.bucketNextStop) debugString += "bucketNextStop: " + current.bucketNextStop.ToString() + Environment.NewLine;
 	// if (old.oKeyDoor_REDDOOR_Locked != current.oKeyDoor_REDDOOR_Locked) debugString += "oKeyDoor_REDDOOR_Locked: " + current.oKeyDoor_REDDOOR_Locked.ToString() + Environment.NewLine;
@@ -78,7 +80,7 @@ update { // Returning false blocks everything but split
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	return current.didIntro == 0;
+	return current.didIntro == 0 && current.isInGame > 0;
 }
 
 /* Only runs when the timer is running */
