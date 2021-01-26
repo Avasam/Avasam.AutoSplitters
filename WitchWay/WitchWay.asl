@@ -1,6 +1,7 @@
 state("WitchWay") {
 	double isInGame: 0x16B8B00;
 	double didIntro: 0x16BE820, 0x34, 0x10, 0x154, 0x0;
+	double isInTransition: 0x16BE820, 0x34, 0x10, 0xC4, 0x0;
 
 	double hasWand: 0x16BE820, 0x34, 0x10, 0xE8, 0x0;
 
@@ -32,7 +33,16 @@ startup { // When the script loads
 	// Which is also the first frame of complete darkness.
 	// The Select button being pressed is consistent with GamePad input viewer and 4 frames before the sound starts.
 	settings.Add("reminder", false, "Reminder: Start the timer at 0.85 ! (This option does nothing)");
+	settings.Add("isInTransition", false, "Room transition");
 	settings.Add("hasWand", true, "Wand obtained");
+
+	settings.Add("Bucket", true);
+	// 0-1 are always unlocked. 6-9 are never unlocked. 5 exit and unlocked with 4.
+	settings.Add("bucketUnlocked", true, "Floor -3 unlocked", "Bucket");
+	settings.Add("bucketStopUnlocked_2", true, "Floor -2¾ unlocked", "Bucket");
+	settings.Add("bucketStopUnlocked_3", true, "Floor -2 unlocked", "Bucket");
+	settings.Add("bucketStopUnlocked_4", true, "Floor -1 unlocked", "Bucket");
+	settings.Add("bucketExitWell", true, "Exit the well");
 
 	settings.Add("Artefacts", true);
 	settings.Add("hasSkull", true, "Skull obtained", "Artefacts");
@@ -48,14 +58,6 @@ startup { // When the script loads
 	// settings.Add("oKeyDoor_REDDOOR_Locked", true, "Red Door unlocked", "Doors");
 	// settings.Add("oKeyDoor_GREENDOOR_Locked", true, "Green Door unlocked", "Doors");
 	// settings.Add("oKeyDoor_BLUEDOOR_Locked", true, "Blue Door unlocked", "Doors");
-
-	settings.Add("Bucket", true);
-	// 0-1 are always unlocked. 6-9 are never unlocked. 5 exit and unlocked with 4.
-	settings.Add("bucketUnlocked", true, "Floor -3 unlocked", "Bucket");
-	settings.Add("bucketStopUnlocked_2", true, "Floor -2¾ unlocked", "Bucket");
-	settings.Add("bucketStopUnlocked_3", true, "Floor -2 unlocked", "Bucket");
-	settings.Add("bucketStopUnlocked_4", true, "Floor -1 unlocked", "Bucket");
-	settings.Add("bucketExitWell", true, "Exit the well", "Bucket");
 
 	settings.Add("bunnyCount", true, "Bunny caught");
 	settings.Add("secretCount", false, "Eye opened");
@@ -89,6 +91,7 @@ reset { // Resets the timer upon returning true
 }
 
 split { // Splits upon returning true if reset isn't explicitly returning true
+	if (settings["isInTransition"] && old.isInTransition == 0 && current.isInTransition == 1) return true;
 	if (settings["hasWand"] && old.hasWand == 0 && current.hasWand == 1) return true;
 
 	if (settings["hasSkull"] && old.hasSkull == 0 && current.hasSkull == 1) return true;
