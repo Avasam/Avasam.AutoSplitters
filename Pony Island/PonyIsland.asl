@@ -53,7 +53,7 @@ startup { // When the script loads
 }
 
 init { // When the game is found
-	print("============================= INITIALISAITON =============================");
+	print("============================= INITIALISATION =============================");
 	vars.soulsLost = null;
 	vars.done = null;
 
@@ -65,7 +65,10 @@ init { // When the game is found
 		if (ptr != IntPtr.Zero) break;
 	}
 	// Waiting for the game to have booted up.
-	if (ptr == IntPtr.Zero) throw new Exception();
+	if (ptr == IntPtr.Zero) {
+		Thread.Sleep(1000); // Wait 1s between rechecking for the proper game
+    throw new Exception("Waiting for the game to finish booting up. Trying again in 1 second."); // This escapes the `init` block, making it retry
+	};
 	
 	vars.LevelId = new MemoryWatcher<int>(ptr);
 }
