@@ -1,30 +1,6 @@
 state("WitchWay") {
-	double isInGame: 0x16B8B00;
-	double didIntro: 0x16BE820, 0x34, 0x10, 0x154, 0x0;
-	double isInTransition: 0x16BE820, 0x34, 0x10, 0xC4, 0x0;
-
-	double hasWand: 0x16BE820, 0x34, 0x10, 0xE8, 0x0;
-
-	double hasSkull: 0x16BE820, 0x34, 0x10, 0x118, 0x0;
-	double hasWateringCan: 0x16BE820, 0x34, 0x10, 0x130, 0x0;
-	double hasBook: 0x16BE820, 0x34, 0x10, 0x124, 0x0;
-
-	double hasRedKey: 0x16BE820, 0x34, 0x10, 0xF4, 0x0;
-	double hasGreen: 0x16BE820, 0x34, 0x10, 0x10C, 0x0;
-	double hasBlueKey: 0x16BE820, 0x34, 0x10, 0x100, 0x0;
-
-	// double oKeyDoor_REDDOOR_Locked: 0x1692124, 0x68, 0xC, 0x34, 0x10, 0xE8, 0x0;
-	// // double oKeyDoor_GREENDOOR_Animation: 0x16B87F0;
-	// double oKeyDoor_GREENDOOR_Locked: 0x1692124, 0x218, 0xC, 0x34, 0x10, 0xE8, 0x0;
-	// // double oKeyDoor_BLUEDOOR_Locked: 0x1692124, 0x68, 0xC, 0x14C, 0x34, 0x10, 0xE8, 0x0;
-	// double oKeyDoor_BLUEDOOR_Locked: 0x1692124, 0xC8, 0xC, 0x34, 0x10, 0xE8, 0x0;
-
-	// Known issue: when the wand orb hits a wall/floor/ceiling. These two pointers becomes wrong for a second.
-	double bucketCurrentStop: 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x424, 0x0;
-	double bucketNextStop: 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x388, 0x0;
-
-	double bunnyCount: 0x16BE820, 0x34, 0x10, 0x13C, 0x0;
-	double secretCount: 0x16BE820, 0x34, 0x10, 0x148, 0x0;
+	// Note: Because the game is actually ran from a different temporary executable,
+	// we have to use MemoryWatchers or LiveSplit will get confused when player closes and reopens the game.
 }
 
 startup { // When the script loads
@@ -67,67 +43,110 @@ startup { // When the script loads
 	vars.bucketStopUnlocked_4 = false;
 }
 
+init { // When the game is found
+	print("============================= INITIALISATION =============================");
+	// The game module itself
+  vars.game = Process.GetProcessesByName("WitchWay").FirstOrDefault(process =>
+		process.MainModule.FileName.Contains(System.IO.Path.GetTempPath())); 
+
+	var g = "WitchWay.exe";
+  if (vars.game == null) {
+    Thread.Sleep(1000); // Wait 1s between rechecking for the proper game
+    throw new Exception(g + " process from temporary folder not found. Trying again in 1 second."); // This escapes the `init` block, making it retry
+  }
+
+	vars.watchers = new ExpandoObject();
+	vars.watchers.isInGame = new MemoryWatcher<double>(new DeepPointer(g, 0x16B8B00));
+	vars.watchers.didIntro = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x154, 0x0));
+	vars.watchers.isInTransition = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0xC4, 0x0));
+
+	vars.watchers.hasWand = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0xE8, 0x0));
+
+	vars.watchers.hasSkull = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x118, 0x0));
+	vars.watchers.hasWateringCan = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x130, 0x0));
+	vars.watchers.hasBook = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x124, 0x0));
+
+	vars.watchers.hasRedKey = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0xF4, 0x0));
+	vars.watchers.hasGreen = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x10C, 0x0));
+	vars.watchers.hasBlueKey = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x100, 0x0));
+
+	// vars.watchers.oKeyDoor_REDDOOR_Locked = new MemoryWatcher<double>(new DeepPointer(g, 0x1692124, 0x68, 0xC, 0x34, 0x10, 0xE8, 0x0));
+	// // vars.watchers.oKeyDoor_GREENDOOR_Animation = new MemoryWatcher<double>(new DeepPointer(g, 0x16B87F0));
+	// vars.watchers.oKeyDoor_GREENDOOR_Locked = new MemoryWatcher<double>(new DeepPointer(g, 0x1692124, 0x218, 0xC, 0x34, 0x10, 0xE8, 0x0));
+	// // vars.watchers.oKeyDoor_BLUEDOOR_Locked = new MemoryWatcher<double>(new DeepPointer(g, 0x1692124, 0x68, 0xC, 0x14C, 0x34, 0x10, 0xE8, 0x0));
+	// vars.watchers.oKeyDoor_BLUEDOOR_Locked = new MemoryWatcher<double>(new DeepPointer(g, 0x1692124, 0xC8, 0xC, 0x34, 0x10, 0xE8, 0x0));
+
+	// Known issue: when the wand orb hits a wall/floor/ceiling. These two pointers becomes wrong for a second.
+	vars.watchers.bucketCurrentStop = new MemoryWatcher<double>(new DeepPointer(g, 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x424, 0x0));
+	vars.watchers.bucketNextStop = new MemoryWatcher<double>(new DeepPointer(g, 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x388, 0x0));
+
+	vars.watchers.bunnyCount = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x13C, 0x0));
+	vars.watchers.secretCount = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x148, 0x0));
+}
+
 /* Main methods */
 update { // Returning false blocks everything but split
 	var debugString = "";
-	if (old.didIntro != current.didIntro) debugString += "didIntro: " + current.didIntro.ToString() + Environment.NewLine;
-	if (old.isInGame != current.isInGame) debugString += "isInGame: " + current.isInGame.ToString() + Environment.NewLine;
-	if (old.bucketCurrentStop != current.bucketCurrentStop) debugString += "bucketCurrentStop: " + current.bucketCurrentStop.ToString() + Environment.NewLine;
-	if (old.bucketNextStop != current.bucketNextStop) debugString += "bucketNextStop: " + current.bucketNextStop.ToString() + Environment.NewLine;
-	// if (old.oKeyDoor_REDDOOR_Locked != current.oKeyDoor_REDDOOR_Locked) debugString += "oKeyDoor_REDDOOR_Locked: " + current.oKeyDoor_REDDOOR_Locked.ToString() + Environment.NewLine;
-	// if (old.oKeyDoor_GREENDOOR_Locked != current.oKeyDoor_GREENDOOR_Locked) debugString += "oKeyDoor_GREENDOOR_Locked: " + current.oKeyDoor_GREENDOOR_Locked.ToString() + Environment.NewLine;
-	// if (old.oKeyDoor_BLUEDOOR_Locked != current.oKeyDoor_BLUEDOOR_Locked) debugString += "oKeyDoor_BLUEDOOR_Locked: " + current.oKeyDoor_BLUEDOOR_Locked.ToString() + Environment.NewLine;
+
+	foreach (var watcher in vars.watchers) {
+		watcher.Value.Update(vars.game);
+
+		if (watcher.Value.Old != watcher.Value.Current) {
+			debugString += watcher.Key + ": " + watcher.Value.Current.ToString() + Environment.NewLine;
+		}
+	}
+
 	if (debugString != "") print(debugString);
 }
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	return current.didIntro == 0 && current.isInGame > 0;
+	return vars.watchers.didIntro.Current == 0 && vars.watchers.isInGame.Current > 0;
 }
 
 /* Only runs when the timer is running */
 reset { // Resets the timer upon returning true
-	return old.didIntro == 1 && current.didIntro == 0;
+	return vars.watchers.didIntro.Old == 1 && vars.watchers.didIntro.Current == 0;
 }
 
 split { // Splits upon returning true if reset isn't explicitly returning true
-	if (settings["isInTransition"] && old.isInTransition == 0 && current.isInTransition == 1) return true;
-	if (settings["hasWand"] && old.hasWand == 0 && current.hasWand == 1) return true;
+	if (settings["isInTransition"] && vars.watchers.isInTransition.Old == 0 && vars.watchers.isInTransition.Current == 1) return true;
+	if (settings["hasWand"] && vars.watchers.hasWand.Old == 0 && vars.watchers.hasWand.Current == 1) return true;
 
-	if (settings["hasSkull"] && old.hasSkull == 0 && current.hasSkull == 1) return true;
-	if (settings["hasWateringCan"] && old.hasWateringCan == 0 && current.hasWateringCan == 1) return true;
-	if (settings["hasBook"] && old.hasBook == 0 && current.hasBook == 1) return true;
+	if (settings["hasSkull"] && vars.watchers.hasSkull.Old == 0 && vars.watchers.hasSkull.Current == 1) return true;
+	if (settings["hasWateringCan"] && vars.watchers.hasWateringCan.Old == 0 && vars.watchers.hasWateringCan.Current == 1) return true;
+	if (settings["hasBook"] && vars.watchers.hasBook.Old == 0 && vars.watchers.hasBook.Current == 1) return true;
 
-	if (settings["hasRedKey"] && old.hasRedKey == 0 && current.hasRedKey == 1) return true;
-	if (settings["hasGreen"] && old.hasGreen == 0 && current.hasGreen == 1) return true;
-	if (settings["hasBlueKey"] && old.hasBlueKey == 0 && current.hasBlueKey == 1) return true;
+	if (settings["hasRedKey"] && vars.watchers.hasRedKey.Old == 0 && vars.watchers.hasRedKey.Current == 1) return true;
+	if (settings["hasGreen"] && vars.watchers.hasGreen.Old == 0 && vars.watchers.hasGreen.Current == 1) return true;
+	if (settings["hasBlueKey"] && vars.watchers.hasBlueKey.Old == 0 && vars.watchers.hasBlueKey.Current == 1) return true;
 
-	// if (settings["oKeyDoor_REDDOOR_Locked"] && old.oKeyDoor_REDDOOR_Locked == 1 && current.oKeyDoor_REDDOOR_Locked == 0) return true;
-	// if (settings["oKeyDoor_GREENDOOR_Locked"] && old.oKeyDoor_GREENDOOR_Locked == 1 && current.oKeyDoor_GREENDOOR_Locked == 0) return true;
-	// if (settings["oKeyDoor_BLUEDOOR_Locked"] && old.oKeyDoor_BLUEDOOR_Locked == 1 && current.oKeyDoor_BLUEDOOR_Locked == 0) return true;
+	// if (settings["oKeyDoor_REDDOOR_Locked"] && vars.watchers.oKeyDoor.Old_REDDOOR_Locked == 1 && vars.watchers.oKeyDoor.Current_REDDOOR_Locked == 0) return true;
+	// if (settings["oKeyDoor_GREENDOOR_Locked"] && vars.watchers.oKeyDoor.Old_GREENDOOR_Locked == 1 && vars.watchers.oKeyDoor.Current_GREENDOOR_Locked == 0) return true;
+	// if (settings["oKeyDoor_BLUEDOOR_Locked"] && vars.watchers.oKeyDoor.Old_BLUEDOOR_Locked == 1 && vars.watchers.oKeyDoor.Current_BLUEDOOR_Locked == 0) return true;
 
 	// Additionnal checks as the pointerpath for the bucket can sometimes point elsewhere
 	if (settings["bucketUnlocked"] &&
-		old.bucketNextStop == 10 && current.bucketNextStop == 0 &&
-		old.bucketCurrentStop == 10 && current.bucketCurrentStop == 10) return true;
+		vars.watchers.bucketNextStop.Old == 10 && vars.watchers.bucketNextStop.Current == 0 &&
+		vars.watchers.bucketCurrentStop.Old == 10 && vars.watchers.bucketCurrentStop.Current == 10) return true;
 	// When First calling the bucket to a certain floor
 	// To floor -2¾ (#2) from above (#3 or #4)
 	if (settings["bucketStopUnlocked_2"] && !vars.bucketStopUnlocked_2 &&
-		old.bucketNextStop >= 3 && current.bucketNextStop == 2 &&
-		old.bucketCurrentStop >= 3 && current.bucketCurrentStop >= 3) return vars.bucketStopUnlocked_2 = true;
+		vars.watchers.bucketNextStop.Old >= 3 && vars.watchers.bucketNextStop.Current == 2 &&
+		vars.watchers.bucketCurrentStop.Old >= 3 && vars.watchers.bucketCurrentStop.Current >= 3) return vars.bucketStopUnlocked_2 = true;
 	// To floor -2 (#3) from -3 (#1)
 	if (settings["bucketStopUnlocked_3"] && !vars.bucketStopUnlocked_3 &&
-		old.bucketNextStop == 1 && current.bucketNextStop == 3 &&
-		old.bucketCurrentStop == 1 && current.bucketCurrentStop == 1) return vars.bucketStopUnlocked_3 = true;
+		vars.watchers.bucketNextStop.Old == 1 && vars.watchers.bucketNextStop.Current == 3 &&
+		vars.watchers.bucketCurrentStop.Old == 1 && vars.watchers.bucketCurrentStop.Current == 1) return vars.bucketStopUnlocked_3 = true;
 	// To floor -1 (#4) from -2 (#3)
 	if (settings["bucketStopUnlocked_4"] && !vars.bucketStopUnlocked_4 &&
-		old.bucketNextStop == 3 && current.bucketNextStop == 4 &&
-		old.bucketCurrentStop == 3 && current.bucketCurrentStop == 3) return vars.bucketStopUnlocked_4 = true;
+		vars.watchers.bucketNextStop.Old == 3 && vars.watchers.bucketNextStop.Current == 4 &&
+		vars.watchers.bucketCurrentStop.Old == 3 && vars.watchers.bucketCurrentStop.Current == 3) return vars.bucketStopUnlocked_4 = true;
 	// Pointer to the bucket is loss, but the player was going from floor -1 (#4) to outside (#5)
 	if (settings["bucketExitWell"] &&
-		old.bucketNextStop == 5 && current.bucketNextStop == 0 &&
-		old.bucketCurrentStop == 4 && current.bucketCurrentStop == 0) return true;
+		vars.watchers.bucketNextStop.Old == 5 && vars.watchers.bucketNextStop.Current == 0 &&
+		vars.watchers.bucketCurrentStop.Old == 4 && vars.watchers.bucketCurrentStop.Current == 0) return true;
 
-	if (settings["bunnyCount"] && old.bunnyCount < current.bunnyCount) return true;
-	if (settings["secretCount"] && old.secretCount < current.secretCount) return true;
+	if (settings["bunnyCount"] && vars.watchers.bunnyCount.Old < vars.watchers.bunnyCount.Current) return true;
+	if (settings["secretCount"] && vars.watchers.secretCount.Old < vars.watchers.secretCount.Current) return true;
 }
