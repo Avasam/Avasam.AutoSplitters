@@ -1,6 +1,7 @@
 state("WitchWay") {
 	// Note: Because the game is actually ran from a different temporary executable,
 	// we have to use MemoryWatchers or LiveSplit will get confused when player closes and reopens the game.
+	// Thanks FromDarkHell for the tip.
 }
 
 startup { // When the script loads
