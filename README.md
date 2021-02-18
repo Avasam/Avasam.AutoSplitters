@@ -16,5 +16,5 @@ These are the autosplitters I didn't publish officially, either because they're 
 
 - **[Pony Island](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Pony%20Island)**  
 - **[The Talos Principle](https://github.com/Avasam/Autosplitters)**  
-- **[Mappy Land](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Mappy%20Land)**  
+- **[Mappy-Land](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Mappy-Land)**  
 - **[WitchWay](https://github.com/Avasam/Avasam.Autosplitters/tree/main/WitchWay)**  
