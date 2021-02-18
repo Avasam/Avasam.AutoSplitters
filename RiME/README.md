@@ -33,8 +33,8 @@ by something like this
 -Escort 2 (hub)
 -Escort 3 (elevator)
 -Elevator
--Escort 3 (garden)
--Escort 4 (shades)
+-Escort 4 (garden)
+-Escort 5 (shades)
 ```
 
 ### 100%
