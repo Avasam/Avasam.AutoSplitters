@@ -1,4 +1,5 @@
 state("RiME") {
+	int state : "RiME.exe", 0x2E105C0, 0x10, 0x0, 0x30, 0xA0, 0x70, 0xC;
 }
 
 startup { // When the script loads
@@ -59,4 +60,8 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		vars.justSaved = false;
 		return true;
 	};
+}
+
+isLoading {
+	return current.state == 2;
 }
