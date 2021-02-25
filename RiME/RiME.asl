@@ -11,9 +11,9 @@ state("RiME") {
 
 startup { // When the script loads
 	print("============================= SCRIPT STARTUP =============================");
-	settings.Add("skipSplitInMenu", true, "Prevent split while the pause menu is open.");
+	settings.Add("skipSplitInMenu", false, "Prevent splits while the pause menu is open");
 	settings.SetToolTip("skipSplitInMenu", "This will prevent \"Reload Last Checkpoint\" splits. Including those from pausing immediately after grabbing a collectible.");
-	settings.Add("debugSounds", false, "Play debug sounds.");
+	settings.Add("debugSounds", false, "Play debug sounds");
 
 	vars.readyToStart = false;
 	vars.isLoading = false;
