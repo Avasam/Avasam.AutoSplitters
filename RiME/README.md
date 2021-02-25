@@ -29,14 +29,74 @@ by something like this
 -Garden
 -Tree
 -Sentinel Head
--Escort 1 (light)
--Escort 2 (hub)
--Escort 3 (elevator)
+-Sentinel Body
+-Escort 1 (hub)
+-Escort 2 (elevator)
 -Elevator
--Escort 4 (garden)
--Escort 5 (shades)
+-Escort 3 (garden)
+-Escort 4 (shades)
 ```
 
 ### 100%
 
 No template yet, but the autosplitter should also work. If you make your own splits, please share!
+
+## Shared Gold Splits
+
+These are the splits that are identical between categories, meaning that you can sync your golds in both.
+
+### Any% <--> No Major Skips
+
+- Hill
+- ...
+- Hub
+- Tree
+- Hub
+- Key 2
+- Staircase
+- Bridge
+- Sun Dial
+- Bridge
+- Throne
+- Wind
+- Labyrinth
+- {Denial} Spiral
+- Memory
+- Exit Tower
+- ...
+- {Anger} Spiral
+- Memory
+- Hallway
+- *Caves*\*
+- *Hub*\*
+- Sentinel
+- Shades
+- *Garden*\*
+- *Tree*\*
+- *Sentinel Head*\*
+- *Sentinel Body*\*
+- *Escort 1 (hub)*\*
+- *Escort 2 (elevator)*\*
+- *Elevator*\*
+- *Escort 3 (garden)*\*
+- *Escort 4 (shades)*\*
+- *Orb*\*
+- Race
+- {Bargaining} Spiral
+- Memory
+- Ride
+- Shades Skip
+- Gate
+- Hub
+- Statue 1
+- Statue 2
+- Statue 3
+- Statue 4
+- Activate
+- Reload
+- Chains
+- {Depression} Spiral
+- Memory
+- {Acceptance} Let Go
+
+*If not doing Tilt Clip
