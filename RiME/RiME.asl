@@ -6,6 +6,7 @@ state("RiME") {
 	// This global counter refreshes with in-gameframerate. Speed of 1 unit per second.
 	// Stops refreshing while pauses menu is open. (will catch up to it's true value immediatly after)
 	double globalCounter: "RiME.exe", 0x2E3B470;
+	int state : "RiME.exe", 0x2E105C0, 0x10, 0x0, 0x30, 0xA0, 0x70, 0xC;
 }
 
 startup { // When the script loads
@@ -130,4 +131,9 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		if (settings["debugSounds"]) vars.splitPlayer.Play();
 		return true;
 	}
+}
+
+isLoading {
+	return false;
+	return current.state == 2;
 }
