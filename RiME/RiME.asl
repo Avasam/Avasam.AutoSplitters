@@ -59,7 +59,7 @@ startup { // When the script loads
 
 	// Ensures splitting still works if refreshing this script with an active timer.
 	if (timer.CurrentPhase == TimerPhase.Running) vars.OnStart(null, null);
-	const string BASE_LOCATION = "https://raw.githubusercontent.com/Avasam/Avasam.AutoSplitters/main/RiME/RiME.asl/";
+	const string BASE_LOCATION = "https://raw.githubusercontent.com/Avasam/Avasam.AutoSplitters/main/RiME/";
 	// vars.loadStartPlayer = new System.Media.SoundPlayer();
 	// vars.loadStartPlayer.SoundLocation = BASE_LOCATION + "LoadStart.wav";
 	vars.splitPlayer = new System.Media.SoundPlayer();
