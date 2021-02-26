@@ -1,23 +1,20 @@
-// Thanks Ero for the help and findin load-related values.
+// Thanks Ero for the help and finding load-related values.
 state("RiME") {
 	// Some camera related stuff, maybe?
 	byte cameraState: "RiME.exe", 0x02E33FC0, 0x10, 0xC8, 0x70, 0x70, 0x60, 0x7C;
 	// int loadState: "RiME.exe", 0x02E11608, 0xF8, 0xA0, 0x160, 0xB8, 0xE28;
 	// This global counter refreshes with in-gameframerate. Speed of 1 unit per second.
 	// Stops refreshing while pauses menu is open. (will catch up to it's true value immediatly after)
-	double globalCounter: "RiME.exe", 0x2E3B470;
+	// double globalCounter: "RiME.exe", 0x2E3B470;
 	int state : "RiME.exe", 0x2E105C0, 0x10, 0x0, 0x30, 0xA0, 0x70, 0xC;
 }
 
 startup { // When the script loads
 	print("============================= SCRIPT STARTUP =============================");
-	settings.Add("skipSplitInMenu", false, "Prevent splits while the pause menu is open");
-	settings.SetToolTip("skipSplitInMenu", "This will prevent \"Reload Last Checkpoint\" splits. Including those from pausing immediately after grabbing a collectible.");
 	settings.Add("debugSounds", false, "Play debug sounds");
 
 	vars.readyToStart = false;
 	vars.isLoading = false;
-	vars.lastGlobalCounterRefresh = DateTime.Now.Ticks;
 	vars.justSaved = false;
 	var lastWriteTime = DateTime.Now.Ticks;
 
@@ -78,15 +75,6 @@ shutdown { // When the script unloads
 }
 
 update {
-	if (settings["skipSplitInMenu"]) {
-		const double LEEWAY = 10000000; // 1FPS
-		var newUpdateTime = DateTime.Now.Ticks;
-		if (old.globalCounter < current.globalCounter) {
-			if (newUpdateTime - vars.lastGlobalCounterRefresh > LEEWAY) print("Menu closed");
-			vars.lastGlobalCounterRefresh = newUpdateTime;
-		}
-	}
-
 	if (old.cameraState != current.cameraState) print("Camera state: " + current.cameraState.ToString());
 	// if (old.loadState != current.loadState) print("Load state: " + current.loadState.ToString());
 }
@@ -116,17 +104,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	vars.fileWatcher.EnableRaisingEvents = true;
 	vars.justSaved = false;
 
-	const double LEEWAY = 10000000; // 1FPS
-	if (settings["skipSplitInMenu"]) {
-		print("Last Global Counter Refresh: " +
-			((DateTime.Now.Ticks - vars.lastGlobalCounterRefresh) / LEEWAY).ToString() + "s");
-	}
-	
-	// If the global counter stops counting for a second
-	// This means a split can still happen 1s immediatly after openning the menu
-	if (settings["skipSplitInMenu"] && DateTime.Now.Ticks - vars.lastGlobalCounterRefresh > LEEWAY) {
-		print("Skipped split due to open menu");
-	} else {
+	if (false) // Some split condition
 		print("Splitting");
 		if (settings["debugSounds"]) vars.splitPlayer.Play();
 		return true;
@@ -134,6 +112,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 }
 
 isLoading {
+	// Disabling for know, doesn't quite work the way we want it to.
 	return false;
 	return current.state == 2;
 }
