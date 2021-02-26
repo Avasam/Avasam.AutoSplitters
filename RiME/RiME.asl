@@ -8,17 +8,8 @@ state("RiME") {
 
 startup { // When the script loads
 	print("============================= SCRIPT STARTUP =============================");
-	settings.Add("debugSounds", false, "Play debug sounds");
 
 	vars.readyToStart = false;
-	
-	const string BASE_LOCATION = "https://raw.githubusercontent.com/Avasam/Avasam.AutoSplitters/main/RiME/";
-	// vars.loadStartPlayer = new System.Media.SoundPlayer();
-	// vars.loadStartPlayer.SoundLocation = BASE_LOCATION + "LoadStart.wav";
-	vars.splitPlayer = new System.Media.SoundPlayer();
-	vars.splitPlayer.SoundLocation = BASE_LOCATION + "Split.wav";
-	vars.timeStartPlayer = new System.Media.SoundPlayer();
-	vars.timeStartPlayer.SoundLocation = BASE_LOCATION + "TimeStart.wav";
 }
 
 shutdown { // When the script unloads
@@ -37,9 +28,4 @@ start {
 }
 
 split { // Splits upon returning true if reset isn't explicitly returning true
-	if (false) // Some split condition
-		print("Splitting");
-		if (settings["debugSounds"]) vars.splitPlayer.Play();
-		return true;
-	}
 }
