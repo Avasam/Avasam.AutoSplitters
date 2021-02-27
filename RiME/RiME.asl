@@ -22,6 +22,7 @@ startup {
 	vars.readyToStart = false;
 
 	#region Building Settings
+	settings.Add("startDelay", "Delay start timer by 6.1s (don't use this with Start Timer offset)");
 	// A nested object array to make settings creation a little bit cleaner.
 	// The array is sorted in the order (parent, id, on/off, description).
 	object[,] settingsArray = {
@@ -175,15 +176,31 @@ init {
 	#endregion
 }
 
+/*
 update {
 	if (old.cameraState != current.cameraState)
 		print("Camera state: " + current.cameraState);
 }
+*/
 
 start {
+	// Start now or in 6.1s depending on user settings
+	if (current.cameraState == 0 && vars.readyToStart && vars.stopWatch.ElapsedMilliseconds >= 6100) {
+		vars.stopWatch.Reset();
+		vars.readyToStart = false;
+		return true;
+	}
+	if (old.cameraState == 1 && current.cameraState == 0 && vars.readyToStart) {
+		if (!settings["startDelay"]) {
+			vars.readyToStart = false;
+			return true;
+		} else {
+			vars.stopWatch.Start();
+			return false;
+		}
+	}
+	// The value should go 2 -> 1 -> 0. We need to make sure it followed the proper sequence.
 	if (old.cameraState == 2 && current.cameraState == 1) vars.readyToStart = true;
-	if (old.cameraState == 1 && current.cameraState == 0 && vars.readyToStart)
-		return !(vars.readyToStart = false);
 }
 
 split {
