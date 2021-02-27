@@ -4,8 +4,7 @@ LiveSplit AutoSplitter for RiME on PC
 
 ## Limitations
 
-- The AutoSplitter works by watching for changes to the save file. If you make a mistake that causes the game to save an additionnal time (like reloading checkpoint), you'll have to manually undo split.
-- You will still have to start and stop the timer yourself.
+- You will still have to stop the timer yourself.
 - No Load remover.
 
 ## Recommended splits

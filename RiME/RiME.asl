@@ -56,10 +56,14 @@ startup {
 		new[]		{ "Denial", "Z01_P", "Chapter Finish" },
 		new[]	{ "Chapters:", "Anger" },
 		new[]		{ "Anger", "BalconyPreTL", "Balcony" },
+		new[]		{ "Anger", "Shelters", "Fall Down" },
+		new[]		{ "Anger", "SheltersDoor", "First Windmill Open" },
+		new[]		{ "Anger", "FirstStormCompleted", "First Windmill Storm" },
 		new[]		{ "Anger", "ShoreFirstTime", "First Shore" },
 		new[]		{ "Anger", "KeyClimbTempleCollected", "Sound Temple's Key" },
 		new[]		{ "Anger", "KeySoundTempleCollected", "Climb Temple's Key" },
 		new[]		{ "Anger", "SeaWindmillOpened", "Sea Windmill Open" },
+		new[]		{ "Anger", "SeaWindmillWaterUp", "Sea Windmill Water Raised" },
 		new[]		{ "Anger", "SeaWindmillStorm", "Sea Windmill Storm" },
 		new[]		{ "Anger", "SeaWindmillShoreReached", "Sea Windmill Shore" },
 		new[]		{ "Anger", "BoatWindmillGraveyard", "Boat Windmill Graveyard" },
@@ -76,7 +80,7 @@ startup {
 		new[]		{ "Bargaining", "SentinelDead", "Sentinel Dead" },
 		new[]		{ "Bargaining", "ShadesBridge", "Shades Bridge" },
 		new[]		{ "Bargaining", "ScrewDriverAlone", "Screw Driver Alone" },
-		new[]		{ "Bargaining", "QueensHallCOmpleted", "Queen's Hall Complete" },
+		new[]		{ "Bargaining", "QueensHallCompleted", "Queen's Hall Complete" },
 		new[]		{ "Bargaining", "SentinelHead", "Sentinel Head" },
 		new[]		{ "Bargaining", "SentinelRevived", "Sentinel Revived" },
 		new[]		{ "Bargaining", "ScrewDriverSentinel", "Screw Driver Sentinel" },
@@ -85,7 +89,7 @@ startup {
 		new[]		{ "Bargaining", "SentinelShadesBridge", "Sentinel Shades Bridge" },
 		new[]		{ "Bargaining", "CementeryPre", "Cemetery Open" },
 		new[]		{ "Bargaining", "CementeryCompleted", "Cemetery Complete" },
-		//new[]		{ "Bargaining", "Chimney", "Chimney Post Cemetery" },
+		// new[]		{ "Bargaining", "Chimney", "Chimney Post Cemetery" },
 		new[]		{ "Bargaining", "Z03_P", "Chapter Finish" },
 		new[]	{ "Chapters:", "Depression" },
 		new[]		{ "Depression", "FirstWayCompleted", "Landing" },
@@ -99,12 +103,13 @@ startup {
 		new[]		{ "Depression", "MainStatueCompleted", "Main Statue Complete", "false" },
 		new[]		{ "Depression", "MainPuzzleCompleted", "Chains Puzzle Complete" },
 		new[]		{ "Depression", "Z00_04_P", "Chapter Finish" },
-		new[]	{ "Chapters:", "OricalcumHouse", "Acceptance : Oricalcum House", "false" },
+		new[]	{ "Chapters:", "OrichalcumHouse", "Acceptance : Orichalcum House", "false" },
 
 		new[]	{ "Extras:", "Outfits" },
 		new[]		{ "Outfits", "SC_CLOTHES_SEA", "Sea Outfit" },
 		new[]		{ "Outfits", "SC_CLOTHES_KING", "King Outfit" },
 		new[]		{ "Outfits", "SC_CLOTHES_PREDATOR", "Predator Outfit" },
+		new[]		{ "Outfits", "SC_CLOTHES_SENTINEL", "Sentinel Outfit" },
 		new[]		{ "Outfits", "SC_CLOTHES_SHADES", "Shades Outfit" },
 		new[]	{ "Extras:", "Toys" },
 		new[]		{ "Toys", "SC_TOY_FOX", "Fox Toy" },
@@ -176,8 +181,6 @@ init {
 		string filePath = Environment.GetEnvironmentVariable("AppData") + @"\..\Local\SirenGame\Saved\SaveGames\data.sav";
 		var regex = new System.Text.RegularExpressions.Regex(@"[^a-zA-Z\d-_]+");
 		var fileList = regex.Replace(File.ReadAllText(filePath), " ").Trim().Split(' ').ToList();
-		print(string.Join(",", fileList));
-		print(fileList.Last());
 
 		// Declaration of some temporary lists.
 		var spList  = Enumerable.Empty<string>().ToList();
@@ -261,7 +264,6 @@ init {
 		// If it hasn't, add it to the HashSet and check if the setting for it is turned on.
 		if (oldString != currString && !vars.completedSplits.Contains(currString)) {
 			vars.completedSplits.Add(currString);
-			print("Current level in split func:" + current.level);
 			split = settings[currString];
 		}
 
