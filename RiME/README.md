@@ -4,8 +4,7 @@ LiveSplit AutoSplitter for RiME on PC
 
 ## Limitations
 
-- The AutoSplitter works by watching for changes to the save file. If you make a mistake that causes the game to save an additionnal time (like reloading checkpoint), you'll have to manually undo split.
-- You will still have to start and stop the timer yourself.
+- You will still have to stop the timer yourself.
 - No Load remover.
 
 ## Recommended splits
@@ -16,24 +15,17 @@ LiveSplit AutoSplitter for RiME on PC
 
 ### Any% (without Tilt Clip)
 
-Using the Any% template, replace `-Tilt Clip 1` by `-Underwater Caves`. Also replace the following section:
+Using the Any% template, replace `-Tilt Clip 1` by `-Underwater Caves`. Also replace `-Tilt Clip 2 (Reload)` by something like this
 
 ```txt
--Tilt Clip 2
--Reload
-```
-
-by something like this
-
-```txt
--Garden
+-Queen's Hall
 -Tree
 -Sentinel Head
 -Sentinel Body
--Escort 1 (hub)
+-Escort 1 (screwdriver)
 -Escort 2 (elevator)
 -Elevator
--Escort 3 (garden)
+-Escort 3 (queen's)
 -Escort 4 (shades)
 ```
 
@@ -49,14 +41,10 @@ These are the splits that are identical between categories, meaning that you can
 
 - Hill
 - ...
-- Hub
 - Tree
-- Hub
 - Key 2
-- Staircase
 - Bridge
 - Sun Dial
-- Bridge
 - Throne
 - Wind
 - Labyrinth
@@ -67,18 +55,18 @@ These are the splits that are identical between categories, meaning that you can
 - {Anger} Spiral
 - Memory
 - Hallway
-- *Caves*\*
-- *Hub*\*
+- *Sinkhole*\*
+- *Chimney*\*
 - Sentinel
 - Shades
-- *Garden*\*
+- *Queen's Hall*\*
 - *Tree*\*
 - *Sentinel Head*\*
 - *Sentinel Body*\*
-- *Escort 1 (hub)*\*
+- *Escort 1 (screwdriver)*\*
 - *Escort 2 (elevator)*\*
 - *Elevator*\*
-- *Escort 3 (garden)*\*
+- *Escort 3 (queen's)*\*
 - *Escort 4 (shades)*\*
 - *Orb*\*
 - Race
@@ -87,13 +75,11 @@ These are the splits that are identical between categories, meaning that you can
 - Ride
 - Shades Skip
 - Gate
-- Hub
+- Necropolis
 - Statue 1
 - Statue 2
 - Statue 3
 - Statue 4
-- Activate
-- Reload
 - Chains
 - {Depression} Spiral
 - Memory
