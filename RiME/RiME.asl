@@ -1,5 +1,9 @@
-// Thanks Ero for the help and parsing teh save file.
+// Thanks Ero for the help and parsing the save file.
 state("RiME") {
+	// 0: Main Menu,	1: Standing,			3: Falling,				4: Swimming,
+	// 6: Step Up,		262: Block Grab,	1030: Ledge Grab,	1286: Vine Climb,
+	// 1542: Sundial Grab, Unreliable during loads
+	// short playerState : "RiME.exe", 0x2E49BE0, 0x100, 0x48, 0x190;
 	// Some camera related stuff, maybe?
 	byte cameraState: "RiME.exe", 0x02E33FC0, 0x10, 0xC8, 0x70, 0x70, 0x60, 0x7C;
 	// This global counter refreshes with in-gameframerate. Speed of 1 unit per second.
@@ -24,7 +28,7 @@ startup { // When the script loads
 	vars.stopWatch = new Stopwatch();
 
 	#region Building Settings
-	settings.Add("startDelay", true, "Delay start timer by 6.1s (don't use this with Start Timer offset)");
+	settings.Add("startDelay", true, "Delay start timer by 5.7s (don't use this with Start Timer offset)");
 
 	// The two outermost parents for our settings.
 	settings.Add("Chapters:");
@@ -250,11 +254,14 @@ init { // When the game is found
 			// of the property of its items after said parent. Adding 1 to this index returns our
 			// first item's index.
 			Func<string, string, int> startIndex = (parent, property) => {
-				return fileList
-					.Select((s, i) => new { String = s, Index = i })
-					.Where(x => x.Index > fileList.IndexOf(parent) && x.String.Contains(property))
-					.Select(x => x.Index)
-					.First() + 1;
+				var parentIndex = fileList.IndexOf(parent);
+				return parentIndex > -1
+					? fileList
+						.Select((s, i) => new { String = s, Index = i })
+						.Where(x => x.Index > parentIndex && x.String.Contains(property))
+						.Select(x => x.Index)
+						.First() + 1
+					: -1;
 			};
 
 			// This is the function used to split. It is given the old and current versions of
@@ -262,11 +269,14 @@ init { // When the game is found
 			Func<string, string, bool> splitFunc = (oldString, currString) => {
 				if (oldString == currString) return false;
 				sBuilder.AppendLine("Value changed: '" + oldString + "' ==> '" + currString + "'");
-				// We have to check if the new item hasn't already been split on, using our HashSet.
-				// If it hasn't, add it to the HashSet and check if the setting for it is turned on.
+				
 				// oldString empty means the value just got initialized.
-				// currString None is simply unused for splitting purposes.
-				if (oldString == "" || currString == "None" || vars.completedSplits.Contains(currString)) return false;
+				// currString None and Z01_P are simply unused for splitting purposes.
+				if (oldString == "" || currString == "None" || currString == "Z01_P" ||
+				// We have to check if the new item hasn't already been split on, using our HashSet.
+					vars.completedSplits.Contains(currString)
+				) return false;
+				// If it hasn't, add it to the HashSet and check if the setting for it is turned on.
 				vars.completedSplits.Add(currString);
 				return settings[currString];
 			};
@@ -274,11 +284,14 @@ init { // When the game is found
 			#region Actual Updating
 			// Here, we update the variables fond in the save file.
 
+			var levelStartIndex = startIndex("PersistentLevelName", "NameProperty");
 			vars.old.level = vars.current.level;
-			vars.current.level = fileList
-				.Skip(startIndex("PersistentLevelName", "NameProperty"))
-				.Take(1)
-				.First();
+			vars.current.level = levelStartIndex > -1
+				? fileList
+					.Skip(levelStartIndex)
+					.Take(1)
+					.First()
+				: "None";
 
 			var spList = fileList
 				.Skip(startIndex("CompletedSavePoints", "NameProperty"))
@@ -297,9 +310,9 @@ init { // When the game is found
 
 			// Call our splitFunc to check if any of them return true.
 			if (
+				splitFunc(vars.old.level, vars.current.level) ||
 				splitFunc(vars.old.savePoint, vars.current.savePoint) ||
-				splitFunc(vars.old.secret, vars.current.secret) ||
-				splitFunc(vars.old.level, vars.current.level)
+				splitFunc(vars.old.secret, vars.current.secret)
 			) {
 				sBuilder.AppendLine("Splitting");
 				new TimerModel{CurrentState = timer}.Split();
@@ -340,7 +353,7 @@ start {
 	if (old.cameraState != current.cameraState) print("Camera state: " + current.cameraState.ToString());
 
 	// Start now or in 6.1s depending on user settings
-	if (current.cameraState == 0 && vars.readyToStart && vars.stopWatch.ElapsedMilliseconds >= 6100) {
+	if (current.cameraState == 0 && vars.readyToStart && vars.stopWatch.ElapsedMilliseconds >= 5700) {
 		vars.stopWatch.Reset();
 		vars.readyToStart = false;
 		return true;
