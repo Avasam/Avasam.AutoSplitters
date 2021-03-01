@@ -45,6 +45,12 @@ startup { // When the script loads
 	// A generic Stopwatch to wait a certain amount of time in some circumstances.
 	vars.stopWatch = new Stopwatch();
 	vars.timerModel = new TimerModel{CurrentState = timer};
+	
+	vars.OnStart = (System.EventHandler)((s, e) => {
+		// Cleanup
+		vars.stopWatch.Reset();
+	});
+	timer.OnStart += vars.OnStart;
 }
 
 init { // When the game is found
@@ -86,6 +92,13 @@ init { // When the game is found
 
 	vars.watchers.bunnyCount = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x13C, 0x0));
 	vars.watchers.secretCount = new MemoryWatcher<double>(new DeepPointer(g, 0x16BE820, 0x34, 0x10, 0x148, 0x0));
+
+	// Allows us to delay when we start tracking for start timer
+	vars.stopWatch.Restart();
+}
+
+shutdown { // When the script unloads
+	timer.OnStart -= vars.OnStart;
 }
 
 /* Main methods */
@@ -105,7 +118,11 @@ update { // Returning false blocks everything but split
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	if (vars.watchers.didIntro.Current == 0 && vars.watchers.isInGame.Current > 0) return true;
+	// Wait for at least 309 frames since game started before starting the timer.
+	// This is because the isInGame double will cycle twice between 0-1 on bootup.
+	return vars.stopWatch.ElapsedMilliseconds >= 5150 &&
+		vars.watchers.didIntro.Current == 0 &&
+		vars.watchers.isInGame.Current > 0;
 }
 
 /* Only runs when the timer is running */
