@@ -10,10 +10,10 @@ state("RiME") {
 	// Stops refreshing while pauses menu is open. (will catch up to it's true value immediatly after)
 	// double globalCounter: "RiME.exe", 0x2E3B470;
 	// savePointsAmount represents the amount of CompletedSavePoints that are currently in data.sav.
-	int savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
+	// byte savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
 	// secretsAmount represents the amount of SecretIDs that are currently in data.sav.
 	// int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
-	int secretsAmount: "RiME.exe", 0x2E4B240, 0x120, 0x198, 0x38;
+	// byte secretsAmount: "RiME.exe", 0x2E4B240, 0x120, 0x198, 0x38;
 }
 
 startup { // When the script loads
@@ -215,6 +215,8 @@ init { // When the game is found
 	vars.current.level = "";
 	vars.current.savePoint = "";
 	vars.current.secret = "";
+	var savePointsRegex = new System.Text.RegularExpressions.Regex("(?s)CompletedSavePoints\0.\0\0\0ArrayProperty\0..\0\0\0\0\0\0.\0\0\0NameProperty\0\0.");
+	var secretsRegex = new System.Text.RegularExpressions.Regex("(?s)SecretUnlockData\0.\0\0\0ArrayProperty\0..\0\0\0\0\0\0.\0\0\0StructProperty\0\0.");
 	#endregion
 
 	#region Helper Functions
@@ -233,21 +235,40 @@ init { // When the game is found
 			// Then we split the plain text into separate elements of a listto a list.
 			// This list will only consist of the finalized strings without any spaces.
 			string filePath = Environment.GetEnvironmentVariable("LOCALAPPDATA") + @"\SirenGame\Saved\SaveGames\data.sav";
-			var regex = new System.Text.RegularExpressions.Regex(@"[^a-zA-Z\d-_]+");
-			List<string> fileList;
+
+			string fileContent;
 			while (true) {
 				try
 				{
 					Thread.Sleep(16);
 					using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 					using (var textReader = new StreamReader(fileStream)) {
-						fileList = regex.Replace(textReader.ReadToEnd(), " ").Trim().Split(' ').ToList();
+						fileContent = textReader.ReadToEnd();
 						break;
 					} 
 				} catch (IOException exception) {
 					print("Exception while trying to read the save file. Trying again in 16ms:\n" + exception.ToString());
 				}
 			}
+
+			Func<System.Text.RegularExpressions.Regex, int> findAmmount = (pattern) => {
+				var match = pattern
+					.Matches(fileContent)
+					.Cast<System.Text.RegularExpressions.Match>()
+					.Select(m => m.Value)
+					.FirstOrDefault() ?? "";
+				return (int) new UTF8Encoding().GetBytes(match).LastOrDefault();
+			};
+
+			var savePointsAmount = findAmmount(savePointsRegex);
+			var secretsAmount = findAmmount(secretsRegex);
+
+			var fileList = new System.Text.RegularExpressions
+				.Regex(@"[^a-zA-Z\d-_]+")
+				.Replace(fileContent, " ")
+				.Trim()
+				.Split(' ')
+				.ToList();
 
 			// This function is used to return the index of the first item of the thing we desire.
 			// Using LINQ, we check the index of our parent structure, followed by the first instance
@@ -295,7 +316,7 @@ init { // When the game is found
 
 			var spList = fileList
 				.Skip(startIndex("CompletedSavePoints", "NameProperty"))
-				.Take((int)current.savePointsAmount);
+				.Take(savePointsAmount);
 			vars.old.savePoint = vars.current.savePoint;
 			vars.current.savePoint = spList.LastOrDefault() ?? "None";
 			// Workaround for Denial and Bargaining both having a "Chimney" SavePoint
@@ -304,7 +325,7 @@ init { // When the game is found
 			var scList = fileList
 				.Skip(startIndex("SirenSecretUnlockSaveData", "StrProperty"))
 				.Where((x, i) => i % 8 == 0)
-				.Take((int)current.secretsAmount);
+				.Take(secretsAmount);
 			vars.old.secret = vars.current.secret;
 			vars.current.secret = scList.LastOrDefault() ?? "None";
 
@@ -328,8 +349,8 @@ init { // When the game is found
 			foreach (string s in scList) sBuilder.AppendLine(s);
 			*/
 			sBuilder.AppendLine("Current Level: " + vars.current.level);
-			sBuilder.AppendLine("Current SavePoint: (" + current.savePointsAmount + ") " + vars.current.savePoint);
-			sBuilder.AppendLine("Current Secret: (" + current.secretsAmount + ") " + vars.current.secret);
+			sBuilder.AppendLine("Current SavePoint: (" + savePointsAmount + ") " + vars.current.savePoint);
+			sBuilder.AppendLine("Current Secret: (" + secretsAmount + ") " + vars.current.secret);
 			
 			if (sBuilder.Length > 0) print(sBuilder.ToString());
 			#endregion
