@@ -42,6 +42,9 @@ startup { // When the script loads
 	vars.bucketStopUnlocked_2 = false;
 	vars.bucketStopUnlocked_3 = false;
 	vars.bucketStopUnlocked_4 = false;
+	// A generic Stopwatch to wait a certain amount of time in some circumstances.
+	vars.stopWatch = new Stopwatch();
+	vars.timerModel = new TimerModel{CurrentState = timer};
 }
 
 init { // When the game is found
@@ -87,22 +90,22 @@ init { // When the game is found
 
 /* Main methods */
 update { // Returning false blocks everything but split
-	var debugString = "";
+	var sBuilder = new StringBuilder();
 
 	foreach (var watcher in vars.watchers) {
 		watcher.Value.Update(vars.game);
 
 		if (watcher.Value.Old != watcher.Value.Current) {
-			debugString += watcher.Key + ": " + watcher.Value.Current.ToString() + Environment.NewLine;
+			sBuilder.AppendLine(watcher.Key + ": " + watcher.Value.Current);
 		}
 	}
 
-	if (debugString != "") print(debugString);
+	if (sBuilder.Length > 0) print(sBuilder.ToString());
 }
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	return vars.watchers.didIntro.Current == 0 && vars.watchers.isInGame.Current > 0;
+	if (vars.watchers.didIntro.Current == 0 && vars.watchers.isInGame.Current > 0) return true;
 }
 
 /* Only runs when the timer is running */
@@ -143,10 +146,19 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	if (settings["bucketStopUnlocked_4"] && !vars.bucketStopUnlocked_4 &&
 		vars.watchers.bucketNextStop.Old == 3 && vars.watchers.bucketNextStop.Current == 4 &&
 		vars.watchers.bucketCurrentStop.Old == 3 && vars.watchers.bucketCurrentStop.Current == 3) return vars.bucketStopUnlocked_4 = true;
-	// Pointer to the bucket is loss, but the player was going from floor -1 (#4) to outside (#5)
-	if (settings["bucketExitWell"] &&
-		vars.watchers.bucketNextStop.Old == 5 && vars.watchers.bucketNextStop.Current == 0 &&
-		vars.watchers.bucketCurrentStop.Old == 4 && vars.watchers.bucketCurrentStop.Current == 0) return true;
+	// To exit (#) from -1 (#4)
+	if (settings["bucketExitWell"]) {
+		// Screen turns to full white 168 frames after sending the elevator up
+		if (vars.stopWatch.ElapsedMilliseconds >= 2800) {
+			vars.stopWatch.Reset();
+			return true;
+		} else if (
+			vars.watchers.bucketNextStop.Old == 4 && vars.watchers.bucketNextStop.Current == 5 &&
+			vars.watchers.bucketCurrentStop.Old == 4 && vars.watchers.bucketCurrentStop.Current == 4) {
+				vars.stopWatch.Start();
+				return false;
+		}
+	}
 
 	if (settings["bunnyCount"] && vars.watchers.bunnyCount.Old < vars.watchers.bunnyCount.Current) return true;
 	if (settings["secretCount"] && vars.watchers.secretCount.Old < vars.watchers.secretCount.Current) return true;
