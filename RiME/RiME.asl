@@ -10,7 +10,7 @@ state("RiME") {
 	// Stops refreshing while pauses menu is open. (will catch up to it's true value immediatly after)
 	// double globalCounter: "RiME.exe", 0x2E3B470;
 	// savePointsAmount represents the amount of CompletedSavePoints that are currently in data.sav.
-	// byte savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
+	byte savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
 	// secretsAmount represents the amount of SecretIDs that are currently in data.sav.
 	// int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
 	// byte secretsAmount: "RiME.exe", 0x2E4B240, 0x120, 0x198, 0x38;
@@ -29,16 +29,16 @@ startup { // When the script loads
 	vars.stopWatch = new Stopwatch();
 
 	#region Building Settings
-	settings.Add("startDelay", true, "Delay start timer by 5.7s (don't use this with Start Timer offset)");
+	settings.Add("startDelay", true, "Delay start timer by 5.89s (don't use this with Start Timer offset)");
 
 	// The two outermost parents for our settings.
-	settings.Add("Chapters:");
+	settings.Add("Stages:");
 	settings.Add("Extras:");
 
 	// A nested object array to make settings creation a little bit cleaner.
 	// The array is sorted in the order (parent, id, description, on/of default).
 	var settingsArray = new string[][] {
-		new[]	{ "Chapters:", "Denial" },
+		new[]	{ "Stages:", "Denial" },
 		new[]		{ "Denial", "TowerCutscene", "Tower Cutscene" },
 		new[]		{ "Denial", "Fox4Found", "Fox Statue 4 (Plateau)" },
 		new[]		{ "Denial", "Fox3Found", "Fox Statue 3 (Tower)" },
@@ -60,8 +60,8 @@ startup { // When the script loads
 		new[]		{ "Denial", "InnerRing", "Inner Ring Entrance" },
 		new[]		{ "Denial", "Labirynth", "Labirynth Entrance" },
 		new[]		{ "Denial", "ChimneyZ01_P", "Labirynth Exit" },
-		new[]		{ "Denial", "Z00_01_P", "Chapter Complete" },
-		new[]	{ "Chapters:", "Anger" },
+		new[]		{ "Denial", "Z00_01_P", "Stage Complete" },
+		new[]	{ "Stages:", "Anger" },
 		new[]		{ "Denial", "Z02_P", "Memory Complete" },
 		new[]		{ "Anger", "BalconyPreTL", "Balcony" },
 		new[]		{ "Anger", "Shelters", "Fall Down" },
@@ -80,8 +80,8 @@ startup { // When the script loads
 		new[]		{ "Anger", "BoatWindmillStorm", "Boat Windmill Storm" },
 		new[]		{ "Anger", "CliffsAreaReached", "Cliffs" },
 		new[]		{ "Anger", "PreFinalTimelapse", "Escape Predator" },
-		new[]		{ "Anger", "Z00_02_P", "Chapter Complete" },
-		new[]	{ "Chapters:", "Bargaining" },
+		new[]		{ "Anger", "Z00_02_P", "Stage Complete" },
+		new[]	{ "Stages:", "Bargaining" },
 		new[]		{ "Anger", "Z03_P", "Memory Complete" },
 		new[]		{ "Bargaining", "KingsHall", "King's Hall" },
 		new[]		{ "Bargaining", "SinkHolePuzzle", "Sinkhole" },
@@ -99,8 +99,8 @@ startup { // When the script loads
 		new[]		{ "Bargaining", "CementeryPre", "Cemetery Open" },
 		new[]		{ "Bargaining", "CementeryCompleted", "Cemetery Complete" },
 		new[]		{ "Bargaining", "ChimneyZ03_P", "Chimney Post Cemetery" },
-		new[]		{ "Bargaining", "Z00_03_P", "Chapter Complete" },
-		new[]	{ "Chapters:", "Depression" },
+		new[]		{ "Bargaining", "Z00_03_P", "Stage Complete" },
+		new[]	{ "Stages:", "Depression" },
 		new[]		{ "Bargaining", "Z04_P", "Memory Complete" },
 		new[]		{ "Depression", "FirstWayCompleted", "Landing" },
 		new[]		{ "Depression", "SecondWayCompleted", "Fox Wall Break" },
@@ -112,8 +112,8 @@ startup { // When the script loads
 		new[]		{ "Depression", "Kid1Found", "Kid Statue 1" },
 		new[]		{ "Depression", "MainStatueCompleted", "Main Statue Complete", "false" },
 		new[]		{ "Depression", "MainPuzzleCompleted", "Chains Puzzle Complete" },
-		new[]		{ "Depression", "Z00_04_P", "Chapter Complete" },
-		new[]	{ "Chapters:", "OrichalcumHouse", "Acceptance : Orichalcum House" },
+		new[]		{ "Depression", "Z00_04_P", "Stage Complete" },
+		new[]	{ "Stages:", "OrichalcumHouse", "Acceptance : Orichalcum House" },
 
 		new[]	{ "Extras:", "Outfits" },
 		new[]		{ "Outfits", "SC_CLOTHES_SEA", "Sea Outfit" },
@@ -144,20 +144,20 @@ startup { // When the script loads
 			setting[0]);
 	for (int i = 0; i < 18; ++i) {
 		var j = i < 14 ? i : i + 2;
-		var s1 = (j / 4 + 1).ToString();
-		var s2 = (j % 4 + 1).ToString();
+		var s1 = (j / 4 + 1);
+		var s2 = (j % 4 + 1);
 		settings.Add("SC_MOSAIC_" + s1 + "0" + s2, true, "Emblem " + s1 + ":" + s2, "Emblems");
 	}
 	for (int i = 0; i < 6; ++i) {
-		var s = (i+1).ToString();
+		var s = (i+1);
 		settings.Add("SC_LULLABY_0" + s, true, "Lullaby " + s, "Lullabies");
 	}
 	for (int i = 0; i < 8; ++i) {
-		var s = (i+1).ToString();
+		var s = (i+1);
 		settings.Add("SC_KEYHOLE_0" + s, true, "Keyhole " + s, "Keyholes");
 	}
 	for (int i = 0; i < 4; ++i) {
-		var s = (i+1).ToString();
+		var s = (i+1);
 		settings.Add("SC_WHITESHADE_0" + s, true, "White Shade " + s, "White Shades");
 	}
 	#endregion
@@ -190,18 +190,22 @@ startup { // When the script loads
 
 	// Stop watching when timer isn't running
 	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) =>
-		vars.fileWatcher.EnableRaisingEvents = false);
+	{
+		vars.readyToStart = false;
+		vars.fileWatcher.EnableRaisingEvents = false;
+	});
 	timer.OnReset += vars.OnReset;
 	#endregion
 
 	// Since it's not always safe to assume a user's script goes through the start{} block, we must
 	// use a System.EventHandler and subscribe it to timer.OnStart. This covers manual starting.
 	vars.OnStart = (System.EventHandler)((s, e) => {
-		// Start watching when the timer starts
+		// Start listening to file events when the timer starts
 		vars.updateVariables();
 		vars.fileWatcher.EnableRaisingEvents = true;
 		// Cleanup
 		vars.justSaved = false;
+		vars.readyToStart = false;
 		vars.completedSplits.Clear();
 		vars.stopWatch.Reset();
 	});
@@ -248,7 +252,7 @@ init { // When the game is found
 						break;
 					} 
 				} catch (IOException exception) {
-					print("Exception while trying to read the save file. Trying again in 16ms:\n" + exception.ToString());
+					print("Exception while trying to read the save file. Trying again in 16ms:\n" + exception);
 				}
 			}
 
@@ -372,23 +376,24 @@ shutdown { // When the script unloads
 }
 
 start {
-	if (old.cameraState != current.cameraState) print("Camera state: " + current.cameraState.ToString());
+	if (old.cameraState != current.cameraState) print("Camera State: " + current.cameraState);
+	if (old.savePointsAmount != current.savePointsAmount) print("Save Points: " + current.savePointsAmount);
 
 	// Start now or in 6.1s depending on user settings
-	if (current.cameraState == 0 && vars.readyToStart && vars.stopWatch.ElapsedMilliseconds >= 5700) {
-		vars.stopWatch.Reset();
-		vars.readyToStart = false;
-		return true;
-	}
-	if (old.cameraState == 1 && current.cameraState == 0 && vars.readyToStart) {
-		if (!settings["startDelay"]) {
-			vars.readyToStart = false;
+	if (current.cameraState == 0 && vars.readyToStart && current.savePointsAmount == 0) {
+		if (vars.stopWatch.ElapsedMilliseconds >= 5890) {
 			return true;
-		} else {
-			vars.stopWatch.Start();
-			return false;
+		}
+		if (old.cameraState == 1) {
+			if (!settings["startDelay"]) {
+				return true;
+			} else {
+				vars.stopWatch.Start();
+				return false;
+			}
 		}
 	}
 	// The value should go 2 -> 1 -> 0. We need to make sure it followed the proper sequence.
 	if (old.cameraState == 2 && current.cameraState == 1) vars.readyToStart = true;
+	if (old.cameraState < current.cameraState) vars.readyToStart = false;
 }
