@@ -152,11 +152,11 @@ startup { // When the script loads
 		var s = (i+1).ToString();
 		settings.Add("SC_LULLABY_0" + s, true, "Lullaby " + s, "Lullabies");
 	}
-	for (int i = 0; i < 6; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		var s = (i+1).ToString();
 		settings.Add("SC_KEYHOLE_0" + s, true, "Keyhole " + s, "Keyholes");
 	}
-	for (int i = 0; i < 6; ++i) {
+	for (int i = 0; i < 4; ++i) {
 		var s = (i+1).ToString();
 		settings.Add("SC_WHITESHADE_0" + s, true, "White Shade " + s, "White Shades");
 	}
@@ -168,7 +168,7 @@ startup { // When the script loads
 		print("Write to data.sav detected!");
 		// Ignore duplicated events (within a second of each-other)
 		var newUpdateTime = DateTime.Now.Ticks;
-		if (newUpdateTime - lastWriteTime > 10000000) {
+		if (newUpdateTime - lastWriteTime > 20000000) {
 			lastWriteTime = newUpdateTime;
 			// Update our tracked variables for the next split() loop
 			vars.updateVariables();
