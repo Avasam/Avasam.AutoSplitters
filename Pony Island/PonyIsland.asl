@@ -126,7 +126,3 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		vars.soulsLost.Current == 0 && settings["SplitOnAutoscroller"]) return true;
 	if (vars.done != null && vars.done.Current == 0 && settings["SplitOnFadeOut"]) return true;
 }
-
-isLoading {
-	
-}

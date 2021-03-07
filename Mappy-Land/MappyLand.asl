@@ -10,7 +10,7 @@ state("fceux", "2.2.3")	{
 }
 
 state("nestopia") {
-	// base address = 0x1b2bcc, 0, 8, 0xc, 0xc, 0x68;
+	// base address = 0x1b2bcc, 0, 8, 0xc, 0xc, +0x68;
 
 	byte stage : "nestopia.exe", 0x1b2bcc, 0, 8, 0xc, 0xc, 0x60A;
 	byte world : "nestopia.exe", 0x1b2bcc, 0, 8, 0xc, 0xc, 0x56;
@@ -31,6 +31,12 @@ state("mesen") {
 	byte celebration_scene: "MesenCore.dll", 0x4311838, 0x118, 0xB8, 0x90, 0x1D8, 0x08, 0x062A;
 }
 
+
+startup {
+	settings.Add("SplitOnStageEnd", false, "Split on stage end instead of start (experimental)");
+	settings.SetToolTip("SplitOnStageEnd", "Split when Mappy reaches the end of the stage instead of when the next stage starts. This is still experimental and may not always work.");
+}
+
 split {
 	/*
 	celebration_scene:
@@ -45,7 +51,7 @@ split {
 		3: Playing
 		4: Playing in bonus screen
 		5: Death & 4-8 Bonus screen success
-	6: Level beaten
+		6: Level beaten
 	*/
 
 	// Split on stage ending and end split
@@ -67,18 +73,13 @@ split {
 	}
 }
 
-reset {
-	return(old.playing == 255 && current.playing == 0
-		&& current.world == 0 && current.stage == 0);
-}
-
 start {
 	return(old.playing == 255 && current.playing == 0
 		&& current.world == 0 && current.stage == 0
 		&& current.music != 0);
 }
 
-startup {
-	settings.Add("SplitOnStageEnd", false, "Split on stage end instead of start (experimental)");
-	settings.SetToolTip("SplitOnStageEnd", "Split when Mappy reaches the end of the stage instead of when the next stage starts. This is still experimental and may not always work.");
+reset {
+	return(old.playing == 255 && current.playing == 0
+		&& current.world == 0 && current.stage == 0);
 }

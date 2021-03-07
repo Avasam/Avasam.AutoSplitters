@@ -193,19 +193,11 @@ startup { // When the script loads
 
 	// Add event handlers.
 	vars.fileWatcher.Changed += OnGameSave;
-
-	// Stop watching when timer isn't running
-	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) =>
-	{
-		vars.readyToStart = false;
-		vars.fileWatcher.EnableRaisingEvents = false;
-	});
-	timer.OnReset += vars.OnReset;
 	#endregion
 
-	// Since it's not always safe to assume a user's script goes through the start{} block, we must
-	// use a System.EventHandler and subscribe it to timer.OnStart. This covers manual starting.
-	vars.OnStart = (System.EventHandler)((s, e) => {
+	// Since it's not always safe to assume a user's script goes through the start{} & reset{} blocks,
+	// we must use an EventHandler and subscribe it to timer events. This covers manual starting/resetting.
+	vars.OnStart = (EventHandler)((s, e) => {
 		// Start listening to file events when the timer starts
 		vars.updateVariables();
 		vars.fileWatcher.EnableRaisingEvents = true;
@@ -216,6 +208,13 @@ startup { // When the script loads
 		vars.stopWatch.Reset();
 	});
 	timer.OnStart += vars.OnStart;
+
+	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) => {
+	// Stop watching when timer isn't running
+		vars.readyToStart = false;
+		vars.fileWatcher.EnableRaisingEvents = false;
+	});
+	timer.OnReset += vars.OnReset;
 }
 
 init { // When the game is found

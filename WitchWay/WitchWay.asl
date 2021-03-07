@@ -46,7 +46,7 @@ startup { // When the script loads
 	vars.stopWatch = new Stopwatch();
 	vars.timerModel = new TimerModel{CurrentState = timer};
 	
-	vars.OnStart = (System.EventHandler)((s, e) => {
+	vars.OnStart = (EventHandler)((s, e) => {
 		// Cleanup
 		vars.stopWatch.Reset();
 	});
