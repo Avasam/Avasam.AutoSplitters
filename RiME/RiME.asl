@@ -16,7 +16,7 @@ state("RiME") {
 	byte savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
 	
 	// secretsAmount represents the amount of SecretIDs that are currently in data.sav.
-	// int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
+	int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
 	// byte secretsAmount: "RiME.exe", 0x2E4B240, 0x120, 0x198, 0x38;
 }
 
@@ -164,6 +164,8 @@ startup { // When the script loads
 		var s = (i+1);
 		settings.Add("SC_WHITESHADE_0" + s, true, "White Shade " + s, "White Shades");
 	}
+
+	settings.Add("pauseOnLoadStart", false, "Pause Timer on load start /!\\ NOT RECOMMENDED /!\\ (experimental)");
 	#endregion
 
 	#region File Watcher
@@ -377,6 +379,20 @@ shutdown { // When the script unloads
 	timer.OnReset -= vars.OnReset;
 	timer.OnStart -= vars.OnStart;
 	vars.fileWatcher.Dispose();
+}
+
+// Main methods
+update { // Returning false blocks everything but split
+		if (settings["pauseOnLoadStart"] && old.secretsAmountPtr != 0 && current.secretsAmountPtr == 0) {
+		print("Load start detected");
+		if (timer.CurrentPhase == TimerPhase.Running &&
+			// Ignore start of memory load for now
+			vars.current.savePoint != "ChimneyZ01_P" && vars.current.savePoint != "PreFinalTimelapse" &&
+			vars.current.savePoint != "ChimneyZ03_P" && vars.current.savePoint != "MainPuzzleCompleted"
+		) {
+			vars.timerModel.Pause();
+		}
+	}
 }
 
 // Only runs when the timer is stopped
