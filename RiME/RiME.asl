@@ -3,14 +3,18 @@ state("RiME") {
 	// 0: Main Menu,	1: Standing,			3: Falling,				4: Swimming,
 	// 6: Step Up,		262: Block Grab,	1030: Ledge Grab,	1286: Vine Climb,
 	// 1542: Sundial Grab, Unreliable during loads
-	// short playerState : "RiME.exe", 0x2E49BE0, 0x100, 0x48, 0x190;
+	// short playerState: "RiME.exe", 0x2E49BE0, 0x100, 0x48, 0x190;
+
 	// Some camera related stuff, maybe?
 	byte cameraState: "RiME.exe", 0x02E33FC0, 0x10, 0xC8, 0x70, 0x70, 0x60, 0x7C;
+
 	// This global counter refreshes with in-gameframerate. Speed of 1 unit per second.
 	// Stops refreshing while pauses menu is open. (will catch up to it's true value immediatly after)
 	// double globalCounter: "RiME.exe", 0x2E3B470;
+
 	// savePointsAmount represents the amount of CompletedSavePoints that are currently in data.sav.
 	byte savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
+	
 	// secretsAmount represents the amount of SecretIDs that are currently in data.sav.
 	// int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
 	// byte secretsAmount: "RiME.exe", 0x2E4B240, 0x120, 0x198, 0x38;
@@ -55,8 +59,8 @@ startup { // When the script loads
 		new[]		{ "Denial", "KeyTowerA", "Tree's Key" },
 		new[]		{ "Denial", "AmphitheaterMain", "Amphitheater Staircase", "false" },
 		new[]		{ "Denial", "TimelapsePre", "Small Bridge" },
-		new[]		{ "Denial", "TimelapseCompleted", "Sundial" },
-		new[]		{ "Denial", "KingsHallEntrance", "Kings Hall Entrance", "false" },
+		new[]		{ "Denial", "TimelapseCompleted", "Sundial", "false" },
+		new[]		{ "Denial", "KingsHallEntrance", "Kings Hall Entrance"},
 		new[]		{ "Denial", "InnerRing", "Inner Ring Entrance" },
 		new[]		{ "Denial", "Labirynth", "Labirynth Entrance" },
 		new[]		{ "Denial", "ChimneyZ01_P", "Labirynth Exit" },
@@ -375,11 +379,14 @@ shutdown { // When the script unloads
 	vars.fileWatcher.Dispose();
 }
 
-start {
-	if (old.cameraState != current.cameraState) print("Camera State: " + current.cameraState);
-	if (old.savePointsAmount != current.savePointsAmount) print("Save Points: " + current.savePointsAmount);
+// Only runs when the timer is stopped
+start { // Starts the timer upon returning true
+	var sBuilder = new StringBuilder();
+	if (old.cameraState != current.cameraState) sBuilder.AppendLine("Camera State: " + current.cameraState);
+	if (old.savePointsAmount != current.savePointsAmount) sBuilder.AppendLine("Save Points: " + current.savePointsAmount);
+	if (sBuilder.Length > 0) print(sBuilder.ToString());
 
-	// Start now or in 6.1s depending on user settings
+	// Start now or in 5.89s depending on user settings
 	if (current.cameraState == 0 && vars.readyToStart && current.savePointsAmount == 0) {
 		if (vars.stopWatch.ElapsedMilliseconds >= 5890) {
 			return true;
