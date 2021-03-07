@@ -24,7 +24,7 @@ startup { // When the script loads
 		new String('?', 245*2), // Junk
 		"6A 6F 79 73 74 69 63 6B 20 37" // 'joystick 7' in ASCII
 		// The rest are strings for the Input Manager, it'd be overkill to look for more.
-    );
+		);
 
 	vars.finaleScanTarget = new SigScanTarget(0,
 		"?? ?? ?? ?? 00 00 00 00", // FinaleScreen
@@ -38,7 +38,7 @@ startup { // When the script loads
 		new String('0', 16*2), // I have no idea
 		"?? ?? ?? ?? 00 00 00 00", // Still no idea
 		"BA 12" // No really, I have no idea, but this becomes 00 00 when the game the ends
-    );
+		);
 
 	Func<int, bool> checkForSplitFunc = (int levelId) =>
 		// Only split when changing act
@@ -67,7 +67,7 @@ init { // When the game is found
 	// Waiting for the game to have booted up.
 	if (ptr == IntPtr.Zero) {
 		Thread.Sleep(1000); // Wait 1s between rechecking for the proper game
-    throw new Exception("Waiting for the game to finish booting up. Trying again in 1 second."); // This escapes the `init` block, making it retry
+		throw new Exception("Waiting for the game to finish booting up. Trying again in 1 second."); // This escapes the `init` block, making it retry
 	};
 	
 	vars.LevelId = new MemoryWatcher<int>(ptr);
@@ -113,12 +113,12 @@ reset { // Resets the timer upon returning true
 }
 
 split { // Splits upon returning true if reset isn't explicitly returning true
-	if (vars.checkForSplit(4)  && settings["SplitOnAct1"]) return true;
-	if (vars.checkForSplit(5)  && settings["SplitOnAct1Boss"]) return true;
-	if (vars.checkForSplit(6)  && settings["SplitOnAct2"]) return true;
-	if (vars.checkForSplit(7)  && settings["SplitOnAct2WorldMap"]) return true;
-	if (vars.checkForSplit(8)  && settings["SplitOnAct2Boss"]) return true;
-	if (vars.checkForSplit(9)  && settings["SplitOnAct3"]) return true;
+	if (vars.checkForSplit(4)	&& settings["SplitOnAct1"]) return true;
+	if (vars.checkForSplit(5)	&& settings["SplitOnAct1Boss"]) return true;
+	if (vars.checkForSplit(6)	&& settings["SplitOnAct2"]) return true;
+	if (vars.checkForSplit(7)	&& settings["SplitOnAct2WorldMap"]) return true;
+	if (vars.checkForSplit(8)	&& settings["SplitOnAct2Boss"]) return true;
+	if (vars.checkForSplit(9)	&& settings["SplitOnAct3"]) return true;
 	if (vars.checkForSplit(11) && settings["SplitOnAct3Desktop"]) return true;
 	if (vars.checkForSplit(12) && settings["SplitOnAct3Boss"]) return true;
 	if (vars.checkForSplit(13) && settings["SplitOnFinale"]) return true;

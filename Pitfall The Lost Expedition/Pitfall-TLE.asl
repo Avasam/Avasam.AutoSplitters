@@ -141,7 +141,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 
 	if (current.harryHealth == 0 && old.harryHealth != 0) {
 		for (; vars.unsplitOnDeathCount > 0; vars.unsplitOnDeathCount--)
-    {
+		{
 			vars.timerModel.UndoSplit();
 		}
 		return false;

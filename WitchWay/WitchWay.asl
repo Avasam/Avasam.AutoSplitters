@@ -56,14 +56,14 @@ startup { // When the script loads
 init { // When the game is found
 	print("============================= INITIALISATION =============================");
 	// The game module itself
-  vars.game = Process.GetProcessesByName("WitchWay").FirstOrDefault(process =>
+	vars.game = Process.GetProcessesByName("WitchWay").FirstOrDefault(process =>
 		process.MainModule.FileName.Contains(System.IO.Path.GetTempPath())); 
 
 	var g = "WitchWay.exe";
-  if (vars.game == null) {
-    Thread.Sleep(1000); // Wait 1s between rechecking for the proper game
-    throw new Exception(g + " process from temporary folder not found. Trying again in 1 second."); // This escapes the `init` block, making it retry
-  }
+	if (vars.game == null) {
+		Thread.Sleep(1000); // Wait 1s between rechecking for the proper game
+		throw new Exception(g + " process from temporary folder not found. Trying again in 1 second."); // This escapes the `init` block, making it retry
+	}
 
 	vars.watchers = new ExpandoObject();
 	vars.watchers.isInGame = new MemoryWatcher<double>(new DeepPointer(g, 0x16B8B00));
