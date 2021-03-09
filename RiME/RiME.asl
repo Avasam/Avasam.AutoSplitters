@@ -16,8 +16,13 @@ state("RiME") {
 	byte savePointsAmount: "RiME.exe", 0x2E485C8, 0x60, 0x1A0, 0x70;
 	
 	// secretsAmount represents the amount of SecretIDs that are currently in data.sav.
-	int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
+	// int secretsAmountPtr: "RiME.exe", 0x2E4B240, 0x120, 0x198;
 	// byte secretsAmount: "RiME.exe", 0x2E4B240, 0x120, 0x198, 0x38;
+
+	int posPtr: "RiME.exe", 0x02E34450, 0x30, 0x3A0;
+	float posX: "RiME.exe", 0x02E34450, 0x30, 0x3A0, 0x1DB8;
+	float posY: "RiME.exe", 0x02E34450, 0x30, 0x3A0, 0x1DBC;
+	float posZ: "RiME.exe", 0x02E34450, 0x30, 0x3A0, 0x1DC0;
 }
 
 startup { // When the script loads
@@ -31,6 +36,37 @@ startup { // When the script loads
 	vars.completedSplits = new HashSet<string>();
 	// A generic Stopwatch to wait a certain amount of time in some circumstances.
 	vars.stopWatch = new Stopwatch();
+
+	// A table to help us know if a load is from a spiral load screen or not
+	var loadCoordinates = new [,] {
+//	{"-9629.652",	"60839.68",	"8091.374"},	// Main Menu
+//	{"-9633.225",	"60839.68",	"8091.374"},	// Main Menu
+		{"24396.16",	"37171.03",	"39344.44"},	// Denial
+//	{"-447.0481",	"5114.565",	"3.583954"},	// Denial Memory
+		{"24275",			"36419.21",	"41604.5"},		// Anger
+//	{"-10.39591",	"3723.797",	"-741.4804"},	// Anger Memory
+		{"34582.34",	"10853.8",	"6103.52"},		// Bargaining
+//	{"-84958.43",	"135707",		"83393.52"},	// Bargaining Memory
+		{"24275",			"36403.21",	"41604.5"},		// Depression
+//	{"737.604",		"-7613.734","10345.52"},	// Depression Memory
+//	{"-14176.52",	"-23212.73","29892.23"},	// Acceptance
+	};
+	vars.isSpiralLoad = (Func<float, float, float, bool>)((x, y, z) =>
+		Enumerable
+			.Range(0, loadCoordinates.GetLength(0))
+			.Select(row =>
+				new {
+					index = row,
+					x = loadCoordinates[row,0],
+					y = loadCoordinates[row,1],
+					z = loadCoordinates[row,2],
+			})
+			.Any(c =>
+				c.x == x.ToString() &&
+				c.y == y.ToString() &&
+				c.z == z.ToString()
+			)
+	);
 
 	#region Building Settings
 	settings.Add("startDelay", true, "Delay start timer by 5.89s (don't use this with Start Timer offset)");
@@ -164,8 +200,6 @@ startup { // When the script loads
 		var s = (i+1);
 		settings.Add("SC_WHITESHADE_0" + s, true, "White Shade " + s, "White Shades");
 	}
-
-	settings.Add("pauseOnLoadStart", false, "Pause Timer on load start /!\\ NOT RECOMMENDED /!\\ (experimental)");
 	#endregion
 
 	#region File Watcher
@@ -210,7 +244,8 @@ startup { // When the script loads
 	timer.OnStart += vars.OnStart;
 
 	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) => {
-	// Stop watching when timer isn't running
+		vars.isLoading = false;
+		// Stop watching when timer isn't running
 		vars.readyToStart = false;
 		vars.fileWatcher.EnableRaisingEvents = false;
 	});
@@ -225,6 +260,8 @@ init { // When the game is found
 	vars.current.level = "";
 	vars.current.savePoint = "";
 	vars.current.secret = "";
+
+	vars.isLoading = false;
 	var savePointsRegex = new System.Text.RegularExpressions.Regex("(?s)CompletedSavePoints\0.\0\0\0ArrayProperty\0..\0\0\0\0\0\0.\0\0\0NameProperty\0\0.");
 	var secretsRegex = new System.Text.RegularExpressions.Regex("(?s)SecretUnlockData\0.\0\0\0ArrayProperty\0..\0\0\0\0\0\0.\0\0\0StructProperty\0\0.");
 	#endregion
@@ -361,7 +398,7 @@ init { // When the game is found
 			sBuilder.AppendLine("Current Level: " + vars.current.level);
 			sBuilder.AppendLine("Current SavePoint: (" + savePointsAmount + ") " + vars.current.savePoint);
 			sBuilder.AppendLine("Current Secret: (" + secretsAmount + ") " + vars.current.secret);
-			
+
 			if (sBuilder.Length > 0) print(sBuilder.ToString());
 			#endregion
 		} catch (Exception exception) {
@@ -381,18 +418,6 @@ shutdown { // When the script unloads
 }
 
 // Main methods
-update { // Returning false blocks everything but split
-		if (settings["pauseOnLoadStart"] && old.secretsAmountPtr != 0 && current.secretsAmountPtr == 0) {
-		print("Load start detected");
-		if (timer.CurrentPhase == TimerPhase.Running &&
-			// Ignore start of memory load for now
-			vars.current.savePoint != "ChimneyZ01_P" && vars.current.savePoint != "PreFinalTimelapse" &&
-			vars.current.savePoint != "ChimneyZ03_P" && vars.current.savePoint != "MainPuzzleCompleted"
-		) {
-			vars.timerModel.Pause();
-		}
-	}
-}
 
 // Only runs when the timer is stopped
 start { // Starts the timer upon returning true
@@ -418,4 +443,32 @@ start { // Starts the timer upon returning true
 	// The value should go 2 -> 1 -> 0. We need to make sure it followed the proper sequence.
 	if (old.cameraState == 2 && current.cameraState == 1) vars.readyToStart = true;
 	if (old.cameraState < current.cameraState) vars.readyToStart = false;
+}
+
+isLoading {
+	if (old.posPtr != current.posPtr) print("posPtr: 0x" + current.posPtr.ToString("X").PadLeft(8, '0'));
+
+	// Lost pointer means loading started
+	if (current.posPtr == 0) vars.isLoading = true;
+
+	// Check position changed. Must be from a non-0 value to another non-0 value on spiral loads
+	if (vars.isLoading && old.posPtr != 0 && current.posPtr != 0 &&
+		((old.posX != 0 && old.posY != 0 && old.posZ != 0) ||
+			!vars.isSpiralLoad(current.posX, current.posY, current.posZ))
+	) {
+		var sBuilder = new StringBuilder();
+		if (Math.Abs(old.posX - current.posX) >= 1) sBuilder.AppendLine("posX  : " + current.posX + " (from " + old.posX + ")");
+		if (Math.Abs(old.posY - current.posY) >= 1) sBuilder.AppendLine("posY  : " + current.posY + " (from " + old.posY + ")");
+		if (Math.Abs(old.posZ - current.posZ) >= 1) sBuilder.AppendLine("posZ  : " + current.posZ + " (from " + old.posZ + ")");
+		if (sBuilder.Length > 0) print(sBuilder.ToString());
+
+		// Double check. All three values must change at the same time.
+		// But it can rarely happen that all three oscillate at the start of a load.
+		if (Math.Abs(old.posX - current.posX) >= 1 &&
+			Math.Abs(old.posY - current.posY) >= 1 &&
+			Math.Abs(old.posZ - current.posZ) >= 1
+		) vars.isLoading = false;
+	}
+
+	return vars.isLoading;
 }
