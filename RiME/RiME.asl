@@ -190,6 +190,9 @@ startup { // When the script loads
 	}
 	for (int i = 0; i < 6; ++i) {
 		var s = (i+1);
+		// Lullabies 1 and 2 are inverted
+		if (s == 1) s = 2;
+		else if (s == 2) s = 1;
 		settings.Add("SC_LULLABY_0" + s, true, "Lullaby " + s, "Lullabies");
 	}
 	for (int i = 0; i < 8; ++i) {
