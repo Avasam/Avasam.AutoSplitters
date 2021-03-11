@@ -5,9 +5,6 @@ state("RiME") {
 	// 1542: Sundial Grab, Unreliable during loads
 	// short playerState: "RiME.exe", 0x2E49BE0, 0x100, 0x48, 0x190;
 
-	// Some camera related stuff, maybe?
-	byte cameraState: "RiME.exe", 0x02E33FC0, 0x10, 0xC8, 0x70, 0x70, 0x60, 0x7C;
-
 	// This global counter refreshes with in-gameframerate. Speed of 1 unit per second.
 	// Stops refreshing while pauses menu is open. (will catch up to it's true value immediatly after)
 	// double globalCounter: "RiME.exe", 0x2E3B470;
@@ -27,10 +24,12 @@ state("RiME") {
 
 startup { // When the script loads
 	print("============================= SCRIPT STARTUP =============================");
-	vars.readyToStart = false;
+	refreshRate = 30;
+	vars.startDelay = -1;
 	vars.old = new ExpandoObject();
 	vars.current = new ExpandoObject();
 	vars.timerModel = new TimerModel{CurrentState = timer};
+	var EPSILON = 3.62f; // Cannot be >= 16f or Anger&Depression's Y will collide
 	// To ensure that no duplicate splits can occur, we add completed things to a HashSet, whose
 	// contained items we compare against.
 	vars.completedSplits = new HashSet<string>();
@@ -39,37 +38,46 @@ startup { // When the script loads
 
 	// A table to help us know if a load is from a spiral load screen or not
 	var loadCoordinates = new [,] {
-//	{"-9629.652",	"60839.68",	"8091.374"},	// Main Menu
-//	{"-9633.225",	"60839.68",	"8091.374"},	// Main Menu
-		{"24396.16",	"37171.03",	"39344.44"},	// Denial
-//	{"-447.0481",	"5114.565",	"3.583954"},	// Denial Memory
-		{"24275",			"36419.21",	"41604.5"},		// Anger
-//	{"-10.39591",	"3723.797",	"-741.4804"},	// Anger Memory
-		{"34582.34",	"10853.8",	"6103.52"},		// Bargaining
-//	{"-84958.43",	"135707",		"83393.52"},	// Bargaining Memory
-		{"24275",			"36403.21",	"41604.5"},		// Depression
-//	{"737.604",		"-7613.734","10345.52"},	// Depression Memory
-//	{"-14176.52",	"-23212.73","29892.23"},	// Acceptance
+		{24396.16f,	37171.03f,	39344.44f,1f}, // Denial
+		{24275f,		36419.21f,	41604.5f, 2f}, // Anger
+		{34582.34f,	10853.8f,		6103.52f, 3f}, // Bargaining
+		{24275f,		36403.21f,	41604.5f,	4f}, // Depression
+		{-14176.52f,-23212.73f,	29892.23f,5f}, // Acceptance
+//	{"-9629.652",	"60839.68",	"8091.374",	"Main Menu"},
+//	{"-9633.225",	"60839.68",	"8091.374",	"Main Menu"},
+//	{"-447.0481",	"5114.565",	"3.583954",	"Denial Memory"},
+//	{"-10.39591",	"3723.797",	"-741.4804","Anger Memory"},
+//	{"-84958.43",	"135707",		"83393.52",	"Bargaining Memory"},
+//	{"737.604",		"-7613.734","10345.52",	"Depression Memory"},
 	};
-	vars.isSpiralLoad = (Func<float, float, float, bool>)((x, y, z) =>
-		Enumerable
-			.Range(0, loadCoordinates.GetLength(0))
+
+	Func<float, float, float, int, int> getLoadCoordsLevel = (x, y, z, count) => {
+		var result = Enumerable
+			.Range(0, count)
 			.Select(row =>
 				new {
 					index = row,
 					x = loadCoordinates[row,0],
 					y = loadCoordinates[row,1],
 					z = loadCoordinates[row,2],
+					level = loadCoordinates[row,3],
 			})
-			.Any(c =>
-				c.x == x.ToString() &&
-				c.y == y.ToString() &&
-				c.z == z.ToString()
-			)
-	);
+			.FirstOrDefault(c =>
+				Math.Abs(c.x - x) <= EPSILON &&
+				Math.Abs(c.y - y) <= EPSILON &&
+				Math.Abs(c.z - z) <= EPSILON 
+			);
+		return result == null ? -1 : (int) result.level;
+	};
+
+	vars.isSpiralLoad = (Func<float, float, float, bool>)((x, y, z) =>
+		getLoadCoordsLevel(x, y, z, 4) != -1);
+
+	vars.getMemoryLoad = (Func<float, float, float, int>)((x, y, z) =>
+		getLoadCoordsLevel(x, y, z, loadCoordinates.GetLength(0)));
 
 	#region Building Settings
-	settings.Add("startDelay", true, "Delay start timer by 5.89s (don't use this with Start Timer offset)");
+	settings.Add("startDelay", true, "Delay start timer to first input (don't use this with Start Timer offset)");
 
 	// The two outermost parents for our settings.
 	settings.Add("Stages:");
@@ -240,7 +248,7 @@ startup { // When the script loads
 		vars.fileWatcher.EnableRaisingEvents = true;
 		// Cleanup
 		vars.justSaved = false;
-		vars.readyToStart = false;
+		vars.startDelay = -1;
 		vars.completedSplits.Clear();
 		vars.stopWatch.Reset();
 	});
@@ -248,8 +256,9 @@ startup { // When the script loads
 
 	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) => {
 		vars.isLoading = false;
+		vars.startDelay = -1;
+		vars.stopWatch.Reset();
 		// Stop watching when timer isn't running
-		vars.readyToStart = false;
 		vars.fileWatcher.EnableRaisingEvents = false;
 	});
 	timer.OnReset += vars.OnReset;
@@ -380,10 +389,11 @@ init { // When the game is found
 			vars.current.secret = scList.LastOrDefault() ?? "None";
 
 			// Call our splitFunc to check if any of them return true.
-			if (
-				splitFunc(vars.old.level, vars.current.level) ||
+			if (settings.SplitEnabled &&
+				(TimeStamp.Now - vars.timerModel.CurrentState.StartTime).Ticks > 20000000 &&
+				(splitFunc(vars.old.level, vars.current.level) ||
 				splitFunc(vars.old.savePoint, vars.current.savePoint) ||
-				splitFunc(vars.old.secret, vars.current.secret)
+				splitFunc(vars.old.secret, vars.current.secret))
 			) {
 				sBuilder.AppendLine("Splitting");
 				vars.timerModel.Split();
@@ -424,28 +434,77 @@ shutdown { // When the script unloads
 
 // Only runs when the timer is stopped
 start { // Starts the timer upon returning true
+	if (current.savePointsAmount != 0 || old.posPtr == 0 || current.posPtr == 0) return false;
 	var sBuilder = new StringBuilder();
-	if (old.cameraState != current.cameraState) sBuilder.AppendLine("Camera State: " + current.cameraState);
-	if (old.savePointsAmount != current.savePointsAmount) sBuilder.AppendLine("Save Points: " + current.savePointsAmount);
-	if (sBuilder.Length > 0) print(sBuilder.ToString());
+	if (Math.Abs(old.posX - current.posX) >= 1) sBuilder.AppendLine("posX  : " + current.posX + " (from " + old.posX + ")");
+	if (Math.Abs(old.posY - current.posY) >= 1) sBuilder.AppendLine("posY  : " + current.posY + " (from " + old.posY + ")");
+	if (Math.Abs(old.posZ - current.posZ) >= 1) sBuilder.AppendLine("posZ  : " + current.posZ + " (from " + old.posZ + ")");
 
-	// Start now or in 5.89s depending on user settings
-	if (current.cameraState == 0 && vars.readyToStart && current.savePointsAmount == 0) {
-		if (vars.stopWatch.ElapsedMilliseconds >= 5890) {
-			return true;
-		}
-		if (old.cameraState == 1) {
-			if (!settings["startDelay"]) {
-				return true;
-			} else {
-				vars.stopWatch.Start();
-				return false;
-			}
+	// NOTE: If we had access to the current level from the memory watch,
+	// we could do this much more concisely.
+
+	var posChanged = Math.Abs(old.posX - current.posX) >= 1 &&
+		Math.Abs(old.posY - current.posY) >= 1 &&
+		Math.Abs(old.posZ - current.posZ) >= 1;
+
+	// Step #1 Prepare the delay to use
+	if (vars.startDelay < 0 &&
+		current.posX != 0 &&
+		current.posY != 0 &&
+		current.posZ != 0 &&
+		posChanged
+	) {
+		vars.stopWatch.Reset();
+		int enteredLevel = vars.getMemoryLoad(current.posX, current.posY, current.posZ);
+		sBuilder.AppendLine("Entered Level: " + enteredLevel);
+		
+		// These values were all tested at 60FPS
+		if (!settings["startDelay"]) {
+			vars.startDelay = 0;
+		} else
+		switch (enteredLevel) {
+			case 1: // Denial
+				vars.startDelay = 19516; // 1171 frames
+				break;
+			case 2: // Anger
+				vars.startDelay = 24366; // 1462 frames
+				break;
+			case 3: // Bargaining
+				vars.startDelay = 22350; // 1351 frames
+				break;
+			case 4: // Depression
+				vars.startDelay = 54333; // 3260 frames
+				break;
+			case 5: // Acceptance
+				vars.startDelay = 20733; // 1244 frames
+				break;
 		}
 	}
-	// The value should go 2 -> 1 -> 0. We need to make sure it followed the proper sequence.
-	if (old.cameraState == 2 && current.cameraState == 1) vars.readyToStart = true;
-	if (old.cameraState < current.cameraState) vars.readyToStart = false;
+
+	// Step #2 Start stopwatch.
+	// On spiral this will run next time the position changes.
+	// On Acceptance this will run immediatly after step #1
+	if (vars.startDelay >= 0 &&
+		!vars.stopWatch.IsRunning &&
+		posChanged &&
+		((old.posX != 0 && old.posY != 0 && old.posZ != 0) ||
+		!vars.isSpiralLoad(current.posX, current.posY, current.posZ))
+	) {
+		vars.stopWatch.Start();
+		sBuilder.AppendLine("Stopwatch started. startDelay: " + vars.startDelay);
+	}
+
+	if (sBuilder.Length > 0) print(sBuilder.ToString());
+
+	// Step #3 Start LiveSplit
+	if (vars.stopWatch.IsRunning && vars.startDelay >= 0 && vars.stopWatch.ElapsedMilliseconds >= vars.startDelay) {
+		print("Automatic start.\nstartDelay: " + vars.startDelay + "\nElapsedMilliseconds: " + vars.stopWatch.ElapsedMilliseconds);
+		return true;
+	};
+}
+
+split {
+	return false;
 }
 
 isLoading {
@@ -465,7 +524,7 @@ isLoading {
 		if (Math.Abs(old.posZ - current.posZ) >= 1) sBuilder.AppendLine("posZ  : " + current.posZ + " (from " + old.posZ + ")");
 		if (sBuilder.Length > 0) print(sBuilder.ToString());
 
-		// Double check. All three values must change at the same time.
+		// All three values must change at the same time.
 		// But it can rarely happen that all three oscillate at the start of a load.
 		if (Math.Abs(old.posX - current.posX) >= 1 &&
 			Math.Abs(old.posY - current.posY) >= 1 &&
