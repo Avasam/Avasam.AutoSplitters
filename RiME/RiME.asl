@@ -38,17 +38,18 @@ startup { // When the script loads
 
 	// A table to help us know if a load is from a spiral load screen or not
 	var loadCoordinates = new [,] {
-		{24396.16f,	37171.03f,	39344.44f,1f}, // Denial
-		{24275f,		36419.21f,	41604.5f, 2f}, // Anger
-		{34582.34f,	10853.8f,		6103.52f, 3f}, // Bargaining
-		{24275f,		36403.21f,	41604.5f,	4f}, // Depression
-		{-14176.52f,-23212.73f,	29892.23f,5f}, // Acceptance
-//	{"-9629.652",	"60839.68",	"8091.374",	"Main Menu"},
-//	{"-9633.225",	"60839.68",	"8091.374",	"Main Menu"},
-//	{"-447.0481",	"5114.565",	"3.583954",	"Denial Memory"},
-//	{"-10.39591",	"3723.797",	"-741.4804","Anger Memory"},
-//	{"-84958.43",	"135707",		"83393.52",	"Bargaining Memory"},
-//	{"737.604",		"-7613.734","10345.52",	"Depression Memory"},
+		{24396.16f,	37171.03f,	39344.44f},	// Denial
+		{24275f,		36419.21f,	41604.5f},	// Anger
+		{34582.34f,	10853.8f,		6103.52f},	// Bargaining
+		{24275f,		36403.21f,	41604.5f},	// Depression
+
+		{-14176.52f,-23212.73f,	29892.23f},	// Acceptance
+
+		{-9633.225,	60839.68,		8091.374},	// Main Menu
+		{-447.0481,	5114.565,		3.583954},	// Denial Memory
+		{-10.39591,	3723.797,		-741.4804},	// Anger Memory
+		{-84958.43,	135707,			83393.52},	// Bargaining Memory
+		{7373.604,	-7613.734,	10345.52},	// Depression Memory
 	};
 
 	Func<float, float, float, int, int> getLoadCoordsLevel = (x, y, z, count) => {
@@ -60,21 +61,36 @@ startup { // When the script loads
 					x = loadCoordinates[row,0],
 					y = loadCoordinates[row,1],
 					z = loadCoordinates[row,2],
-					level = loadCoordinates[row,3],
 			})
 			.FirstOrDefault(c =>
 				Math.Abs(c.x - x) <= EPSILON &&
 				Math.Abs(c.y - y) <= EPSILON &&
 				Math.Abs(c.z - z) <= EPSILON 
 			);
-		return result == null ? -1 : (int) result.level;
+		return result == null ? -1 : (int) result.index;
 	};
 
 	vars.isSpiralLoad = (Func<float, float, float, bool>)((x, y, z) =>
-		getLoadCoordsLevel(x, y, z, 4) != -1);
+		getLoadCoordsLevel(x, y, z, 4) >= -1);
 
-	vars.getMemoryLoad = (Func<float, float, float, int>)((x, y, z) =>
-		getLoadCoordsLevel(x, y, z, loadCoordinates.GetLength(0)));
+	vars.getStageLoad = (Func<float, float, float, int>)((x, y, z) =>
+		getLoadCoordsLevel(x, y, z, 5));
+
+	vars.isMemoryLoad = (Func<float, float, float, bool>)((x, y, z) =>
+		Enumerable
+			.Range(4, 6)
+			.Select(row =>
+				new {
+					x = loadCoordinates[row,0],
+					y = loadCoordinates[row,1],
+					z = loadCoordinates[row,2],
+			})
+			.Any(c =>
+				Math.Abs(c.x - x) <= EPSILON &&
+				Math.Abs(c.y - y) <= EPSILON &&
+				Math.Abs(c.z - z) <= EPSILON 
+			)
+	);
 
 	#region Building Settings
 	settings.Add("startDelay", true, "Delay start timer to first input (don't use this with Start Timer offset)");
@@ -455,7 +471,7 @@ start { // Starts the timer upon returning true
 		posChanged
 	) {
 		vars.stopWatch.Reset();
-		int enteredLevel = vars.getMemoryLoad(current.posX, current.posY, current.posZ);
+		int enteredLevel = vars.getStageLoad(current.posX, current.posY, current.posZ);
 		sBuilder.AppendLine("Entered Level: " + enteredLevel);
 		
 		// These values were all tested at 60FPS
@@ -463,19 +479,19 @@ start { // Starts the timer upon returning true
 			vars.startDelay = 0;
 		} else
 		switch (enteredLevel) {
-			case 1: // Denial
+			case 0: // Denial
 				vars.startDelay = 19516; // 1171 frames
 				break;
-			case 2: // Anger
+			case 1: // Anger
 				vars.startDelay = 24366; // 1462 frames
 				break;
-			case 3: // Bargaining
+			case 2: // Bargaining
 				vars.startDelay = 22350; // 1351 frames
 				break;
-			case 4: // Depression
+			case 3: // Depression
 				vars.startDelay = 54333; // 3260 frames
 				break;
-			case 5: // Acceptance
+			case 4: // Acceptance
 				vars.startDelay = 20733; // 1244 frames
 				break;
 		}
@@ -513,23 +529,31 @@ isLoading {
 	// Lost pointer means loading started
 	if (current.posPtr == 0) vars.isLoading = true;
 
-	// Check position changed. Must be from a non-0 value to another non-0 value on spiral loads
-	if (vars.isLoading && old.posPtr != 0 && current.posPtr != 0 &&
-		((old.posX != 0 && old.posY != 0 && old.posZ != 0) ||
-			!vars.isSpiralLoad(current.posX, current.posY, current.posZ))
-	) {
+	if (vars.isLoading && old.posPtr != 0 && current.posPtr != 0) {
 		var sBuilder = new StringBuilder();
+
 		if (Math.Abs(old.posX - current.posX) >= 1) sBuilder.AppendLine("posX  : " + current.posX + " (from " + old.posX + ")");
 		if (Math.Abs(old.posY - current.posY) >= 1) sBuilder.AppendLine("posY  : " + current.posY + " (from " + old.posY + ")");
 		if (Math.Abs(old.posZ - current.posZ) >= 1) sBuilder.AppendLine("posZ  : " + current.posZ + " (from " + old.posZ + ")");
-		if (sBuilder.Length > 0) print(sBuilder.ToString());
 
-		// All three values must change at the same time.
-		// But it can rarely happen that all three oscillate at the start of a load.
-		if (Math.Abs(old.posX - current.posX) >= 1 &&
-			Math.Abs(old.posY - current.posY) >= 1 &&
-			Math.Abs(old.posZ - current.posZ) >= 1
-		) vars.isLoading = false;
+		// Check position changed. Must be from a non-0 value to another non-0 value on spiral loads
+		if ((old.posX != 0 && old.posY != 0 && old.posZ != 0) ||
+				!vars.isSpiralLoad(current.posX, current.posY, current.posZ)
+		) {
+			// All three values must change at the same time.
+			// But it can rarely happen that all three oscillate at the start of a load.
+			if (Math.Abs(old.posX - current.posX) >= 1 &&
+				Math.Abs(old.posY - current.posY) >= 1 &&
+				Math.Abs(old.posZ - current.posZ) >= 1
+			) vars.isLoading = false;
+		}
+
+		// Stop loading as soon as a coordinate changes from non-zero for Memory loads
+		else if (vars.isMemoryLoad(current.posX, current.posY, current.posZ)) {
+			vars.isLoading = false;
+		}
+
+		if (sBuilder.Length > 0) print(sBuilder.ToString());
 	}
 
 	return vars.isLoading;
