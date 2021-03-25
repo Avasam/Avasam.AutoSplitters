@@ -71,7 +71,7 @@ startup { // When the script loads
 	};
 
 	vars.isSpiralLoad = (Func<float, float, float, bool>)((x, y, z) =>
-		getLoadCoordsLevel(x, y, z, 4) >= -1);
+		getLoadCoordsLevel(x, y, z, 4) > -1);
 
 	vars.getStageLoad = (Func<float, float, float, int>)((x, y, z) =>
 		getLoadCoordsLevel(x, y, z, 5));
@@ -450,7 +450,13 @@ shutdown { // When the script unloads
 
 // Only runs when the timer is stopped
 start { // Starts the timer upon returning true
-	if (current.savePointsAmount != 0 || old.posPtr == 0 || current.posPtr == 0) return false;
+	var acceptanceStartDelay = 20933; // 1256 frames
+
+	// Note: Acceptace starts at 1 savePoint, all others at 0
+	if (current.savePointsAmount > 1 ||
+		(current.savePointsAmount != 0 && vars.startDelay != acceptanceStartDelay) ||
+		old.posPtr == 0 ||
+		current.posPtr == 0) return false;
 	var sBuilder = new StringBuilder();
 	if (Math.Abs(old.posX - current.posX) >= 1) sBuilder.AppendLine("posX  : " + current.posX + " (from " + old.posX + ")");
 	if (Math.Abs(old.posY - current.posY) >= 1) sBuilder.AppendLine("posY  : " + current.posY + " (from " + old.posY + ")");
@@ -477,22 +483,21 @@ start { // Starts the timer upon returning true
 		// These values were all tested at 60FPS
 		if (!settings["startDelay"]) {
 			vars.startDelay = 0;
-		} else
-		switch (enteredLevel) {
+		} else switch (enteredLevel) {
 			case 0: // Denial
-				vars.startDelay = 19516; // 1171 frames
+				vars.startDelay = 19550; // 1173 frames
 				break;
 			case 1: // Anger
 				vars.startDelay = 24366; // 1462 frames
 				break;
 			case 2: // Bargaining
-				vars.startDelay = 22350; // 1351 frames
+				vars.startDelay = 23900; // 1434 frames
 				break;
 			case 3: // Depression
-				vars.startDelay = 54333; // 3260 frames
+				vars.startDelay = 54266; // 3256 frames
 				break;
 			case 4: // Acceptance
-				vars.startDelay = 20733; // 1244 frames
+				vars.startDelay = acceptanceStartDelay;
 				break;
 		}
 	}
