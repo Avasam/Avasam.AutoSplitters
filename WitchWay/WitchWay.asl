@@ -64,7 +64,7 @@ init { // When the game is found
 			Environment.GetEnvironmentVariable("TEMP"),
 			Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine),
 			// Environment.GetEnvironmentVariable("USERPROFILE"), // Not really a temp folder
-			@"C:\WINDOWS\msdownld.tmp", // Fallback when the TEMP folder is not accessible due to permissions
+			@"C:\WINDOWS\msdownld.tmp", // Fallback when the TMP/TEMP folder is not accessible due to permissions
 	}.Where(tempPath => !string.IsNullOrEmpty(tempPath))
 	.Distinct();
 	// print("tempaths:\n- " + string.Join("\n- ", tempPaths));
@@ -80,7 +80,7 @@ init { // When the game is found
 		throw new Exception(g +
 		" process from temporary folder not found under any of the following paths:\n- " +
 		string.Join("\n- ", tempPaths) +
-		"'\nTrying again in 1 second.");
+		"\nTrying again in 1 second.");
 	}
 
 	print("Game found at: " + vars.game.MainModule.FileName);
@@ -142,9 +142,8 @@ update { // Returning false blocks everything but split
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	// Wait for at least 335 frames since game started before starting the timer.
+	// Wait some time since game started before starting the timer.
 	// This is because the isInGame double will cycle twice between 0-1 on bootup.
-	print("stopWatch.ElapsedMilliseconds: " + vars.stopWatch.ElapsedMilliseconds);
 	var framesToMs = Math.Ceiling(337 * (1000 / 60f));
 	return (vars.stopWatch.ElapsedMilliseconds == 0 ||
 			vars.stopWatch.ElapsedMilliseconds > framesToMs) &&
