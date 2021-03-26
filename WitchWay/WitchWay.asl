@@ -56,16 +56,34 @@ startup { // When the script loads
 init { // When the game is found
 	print("============================= INITIALISATION =============================");
 	// The game module itself
-	var tempPath = System.IO.Path.GetTempPath();
+	// Deconstructing what System.IO.Path.GetTempPath() could get, see:
+	// https://docs.microsoft.com/en-us/dotnet/api/system.io.path.gettemppath?view=net-5.0&tabs=windows#remarks
+	var tempPaths = new []{
+			Environment.GetEnvironmentVariable("TMP"),
+			Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.Machine),
+			Environment.GetEnvironmentVariable("TEMP"),
+			Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine),
+			// Environment.GetEnvironmentVariable("USERPROFILE"), // Not really a temp folder
+			@"C:\WINDOWS\msdownld.tmp", // Fallback when the TEMP folder is not accessible due to permissions
+	}.Where(tempPath => !string.IsNullOrEmpty(tempPath))
+	.Distinct();
+	// print("tempaths:\n- " + string.Join("\n- ", tempPaths));
+
 	vars.game = Process.GetProcessesByName("WitchWay").FirstOrDefault(process =>
-		process.MainModule.FileName.Contains(tempPath)); 
+		tempPaths.Any(tempPath =>
+			process.MainModule.FileName.Contains(tempPath))); 
 
 	var g = "WitchWay.exe";
 	if (vars.game == null) {
 		Thread.Sleep(1000); // Wait 1s between rechecking for the proper game
 		// This escapes the `init` block, making it retry
-		throw new Exception(g + " process from temporary folder not found under '" + tempPath + "'. Trying again in 1 second.");
+		throw new Exception(g +
+		" process from temporary folder not found under any of the following paths:\n- " +
+		string.Join("\n- ", tempPaths) +
+		"'\nTrying again in 1 second.");
 	}
+
+	print("Game found at: " + vars.game.MainModule.FileName);
 
 	vars.watchers = new ExpandoObject();
 	vars.watchers.isInGame = new MemoryWatcher<double>(new DeepPointer(g, 0x16B8B00));
