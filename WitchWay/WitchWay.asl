@@ -121,6 +121,10 @@ shutdown { // When the script unloads
 	timer.OnStart -= vars.OnStart;
 }
 
+exit { // When the game closes
+	if (settings.ResetEnabled) vars.timerModel.Reset();
+}
+
 /* Main methods */
 update { // Returning false blocks everything but split
 	var sBuilder = new StringBuilder();
@@ -138,9 +142,12 @@ update { // Returning false blocks everything but split
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	// Wait for at least 309 frames since game started before starting the timer.
+	// Wait for at least 335 frames since game started before starting the timer.
 	// This is because the isInGame double will cycle twice between 0-1 on bootup.
-	return vars.stopWatch.ElapsedMilliseconds >= 5150 &&
+	print("stopWatch.ElapsedMilliseconds: " + vars.stopWatch.ElapsedMilliseconds);
+	var framesToMs = Math.Ceiling(337 * (1000 / 60f));
+	return (vars.stopWatch.ElapsedMilliseconds == 0 ||
+			vars.stopWatch.ElapsedMilliseconds > framesToMs) &&
 		vars.watchers.didIntro.Current == 0 &&
 		vars.watchers.isInGame.Current > 0;
 }
