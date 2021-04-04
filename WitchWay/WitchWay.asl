@@ -39,15 +39,15 @@ startup { // When the script loads
 	settings.Add("bunnyCount", true, "Bunny caught");
 	settings.Add("secretCount", false, "Eye opened");
 
-	vars.bucketStopUnlocked_2 = false;
-	vars.bucketStopUnlocked_3 = false;
-	vars.bucketStopUnlocked_4 = false;
 	// A generic Stopwatch to wait a certain amount of time in some circumstances.
 	vars.stopWatch = new Stopwatch();
 	vars.timerModel = new TimerModel{CurrentState = timer};
 	
 	vars.OnStart = (EventHandler)((s, e) => {
 		// Cleanup
+		vars.bucketStopUnlocked_2 = false;
+		vars.bucketStopUnlocked_3 = false;
+		vars.bucketStopUnlocked_4 = false;
 		vars.stopWatch.Reset();
 	});
 	timer.OnStart += vars.OnStart;
@@ -67,8 +67,6 @@ init { // When the game is found
 			@"C:\WINDOWS\msdownld.tmp", // Fallback when the TMP/TEMP folder is not accessible due to permissions
 	}.Where(tempPath => !string.IsNullOrEmpty(tempPath))
 	.Distinct();
-	// print("tempaths:\n- " + string.Join("\n- ", tempPaths));
-
 	vars.game = Process.GetProcessesByName("WitchWay").FirstOrDefault(process =>
 		tempPaths.Any(tempPath =>
 			process.MainModule.FileName.Contains(tempPath))); 
@@ -107,6 +105,7 @@ init { // When the game is found
 	// vars.watchers.oKeyDoor_BLUEDOOR_Locked = new MemoryWatcher<double>(new DeepPointer(g, 0x1692124, 0xC8, 0xC, 0x34, 0x10, 0xE8, 0x0));
 
 	// Known issue: when the wand orb hits a wall/floor/ceiling. These two pointers becomes wrong for a second.
+	vars.watchers.bucketNextStopPtr = new MemoryWatcher<int>(new DeepPointer(g, 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x424));
 	vars.watchers.bucketCurrentStop = new MemoryWatcher<double>(new DeepPointer(g, 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x424, 0x0));
 	vars.watchers.bucketNextStop = new MemoryWatcher<double>(new DeepPointer(g, 0x16E079C, 0x0, 0x14C, 0x34, 0x10, 0x388, 0x0));
 
@@ -133,7 +132,10 @@ update { // Returning false blocks everything but split
 		watcher.Value.Update(vars.game);
 
 		if (watcher.Value.Old != watcher.Value.Current) {
-			sBuilder.AppendLine(watcher.Key + ": " + watcher.Value.Current);
+			var value = watcher.Key.EndsWith("Ptr")
+				? "0x" + watcher.Value.Current.ToString("X").PadLeft(8, '0')
+				: watcher.Value.Current.ToString();
+			sBuilder.AppendLine(watcher.Key + ": " + value);
 		}
 	}
 
@@ -144,7 +146,7 @@ update { // Returning false blocks everything but split
 start { // Starts the timer upon returning true
 	// Wait some time since game started before starting the timer.
 	// This is because the isInGame double will cycle twice between 0-1 on bootup.
-	var framesToMs = Math.Ceiling(337 * (1000 / 60f));
+	var framesToMs = Math.Ceiling(338 * (1000 / 60f));
 	return (vars.stopWatch.ElapsedMilliseconds == 0 ||
 			vars.stopWatch.ElapsedMilliseconds > framesToMs) &&
 		vars.watchers.didIntro.Current == 0 &&
@@ -172,11 +174,15 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	// if (settings["oKeyDoor_GREENDOOR_Locked"] && vars.watchers.oKeyDoor.Old_GREENDOOR_Locked == 1 && vars.watchers.oKeyDoor.Current_GREENDOOR_Locked == 0) return true;
 	// if (settings["oKeyDoor_BLUEDOOR_Locked"] && vars.watchers.oKeyDoor.Old_BLUEDOOR_Locked == 1 && vars.watchers.oKeyDoor.Current_BLUEDOOR_Locked == 0) return true;
 
+	if (settings["bunnyCount"] && vars.watchers.bunnyCount.Old < vars.watchers.bunnyCount.Current) return true;
+	if (settings["secretCount"] && vars.watchers.secretCount.Old < vars.watchers.secretCount.Current) return true;
+
 	// Additionnal checks as the pointerpath for the bucket can sometimes point elsewhere
+	if (!settings["Bucket"] || vars.watchers.bucketNextStopPtr.Current < 0x0D010000) return false; // Arbritrary
+	// When First calling the bucket to a certain floor
 	if (settings["bucketUnlocked"] &&
 		vars.watchers.bucketNextStop.Old == 10 && vars.watchers.bucketNextStop.Current == 0 &&
 		vars.watchers.bucketCurrentStop.Old == 10 && vars.watchers.bucketCurrentStop.Current == 10) return true;
-	// When First calling the bucket to a certain floor
 	// To floor -2¾ (#2) from above (#3 or #4)
 	if (settings["bucketStopUnlocked_2"] && !vars.bucketStopUnlocked_2 &&
 		vars.watchers.bucketNextStop.Old >= 3 && vars.watchers.bucketNextStop.Current == 2 &&
@@ -189,7 +195,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	if (settings["bucketStopUnlocked_4"] && !vars.bucketStopUnlocked_4 &&
 		vars.watchers.bucketNextStop.Old == 3 && vars.watchers.bucketNextStop.Current == 4 &&
 		vars.watchers.bucketCurrentStop.Old == 3 && vars.watchers.bucketCurrentStop.Current == 3) return vars.bucketStopUnlocked_4 = true;
-	// To exit (#) from -1 (#4)
+	// To exit (#5) from -1 (#4)
 	if (settings["bucketExitWell"]) {
 		// Screen turns to full white 168 frames after sending the elevator up
 		if (vars.stopWatch.ElapsedMilliseconds >= 2800) {
@@ -202,7 +208,4 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 				return false;
 		}
 	}
-
-	if (settings["bunnyCount"] && vars.watchers.bunnyCount.Old < vars.watchers.bunnyCount.Current) return true;
-	if (settings["secretCount"] && vars.watchers.secretCount.Old < vars.watchers.secretCount.Current) return true;
 }
