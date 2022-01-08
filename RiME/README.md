@@ -4,7 +4,7 @@ LiveSplit AutoSplitter for RiME on PC
 
 ## Limitations
 
-- Automatic start works by timing the end of a lod to the first possible input. It assumes that you'll move as soon as possible and that you won't pause until then. Note that you can pause during the intro cutscene of Denial, before the title appears. In case you need to fix a setting last second.
+- Automatic start works by timing the end of a load to the first possible input. It assumes that you'll move as soon as possible and that you won't pause until then. Note that you can pause during the intro cutscene of Denial, before the title appears. In case you need to something last second.
 - You will still have to stop the timer yourself.
 
 ## Recommended splits

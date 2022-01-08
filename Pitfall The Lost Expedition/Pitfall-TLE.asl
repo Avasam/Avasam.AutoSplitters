@@ -23,10 +23,10 @@ state("PITFALL The Lost Expedition") {
 startup { // When the script loads
 	print("============================= SCRIPT STARTUP =============================");
 	settings.Add("Reminder", false, "Reminders (these options do nothing)");
-	settings.Add("Reminder1", false, "Remember to set your \"Start Time at:\" to 1.44 !", "Reminder");
+	settings.Add("Reminder1", false, "Remember to set your \"Start Time at:\" to 1.35 !", "Reminder");
 	settings.Add("Reminder2", false, "Automatic Reset is experimental", "Reminder");
 	settings.Add("DebugLogs", false, "Print debug logs in DbgView", "Reminder");
-	
+
 	settings.Add("SplitOnLoad", true, "Split on Loading Screen (except the first one)");
 	settings.Add("SplitOnPusca", true, "Split on Defeating Pusca");
 
@@ -110,7 +110,7 @@ update { // Returning false blocks everything but split
 
 /* Only runs when the timer is stopped */
 start { // Starts the timer upon returning true
-	if (current.isLoading && !old.isLoading) {
+	if (current.isLoading && !old.isLoading && current.zone == 0x99885996) {
 		return vars.firstLoadingSkipped = true;
 	}
 }
@@ -118,7 +118,11 @@ start { // Starts the timer upon returning true
 /* Only runs when the timer is running */
 reset { // Resets the timer upon returning true
 	// Resets on going back to menu. Credits also sets the zone to 0
-	if (current.zone == 0 && old.zone != 0) {
+	if (current.zone == 0
+		&& old.zone != 0 // Menu
+		&& old.zone != 0x62548B77 // White Valley
+		&& old.zone != 0x0305DC42 // Scorpion Fight
+	) {
 		if (vars.ignoreResetForCredits) {
 			return vars.ignoreResetForCredits = false;
 		}
@@ -158,8 +162,8 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		vars.ignoreResetForCredits = true;
 		if (settings["SplitOnPusca"]) return true;
 	};
-	
-	var idolsGained = current.idolsCount - old.idolsCount; 
+
+	var idolsGained = current.idolsCount - old.idolsCount;
 
 	if (settings["SplitOnIdol"] && idolsGained == 5) {
 		vars.unsplitOnDeathCount++;
@@ -179,7 +183,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		vars.unsplitOnDeathCount++;
 		if (settings["DebugLogs"]) print("Split on Shaman");
 		return true;
-	};	
+	};
 }
 
 isLoading { // Pauses the Game Timer upon returning true

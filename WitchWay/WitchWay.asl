@@ -178,7 +178,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	if (settings["secretCount"] && vars.watchers.secretCount.Old < vars.watchers.secretCount.Current) return true;
 
 	// Additionnal checks as the pointerpath for the bucket can sometimes point elsewhere
-	if (!settings["Bucket"] || vars.watchers.bucketNextStopPtr.Current < 0x0D010000) return false; // Arbritrary
+	if (!settings["Bucket"] || vars.watchers.bucketNextStopPtr.Current < 0x0D010000) return false; // Arbitrary
 	// When First calling the bucket to a certain floor
 	if (settings["bucketUnlocked"] &&
 		vars.watchers.bucketNextStop.Old == 10 && vars.watchers.bucketNextStop.Current == 0 &&
