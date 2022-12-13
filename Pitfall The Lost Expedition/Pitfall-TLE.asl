@@ -2,8 +2,20 @@ state("PITFALL The Lost Expedition") {
 	// 0x5170CC follows the current zone, but not always exactly at the same time. 0 on first Jaguar. Might be related to save.
 	uint zone: 0x517088;
 	bool isLoading: 0x523735;
+
+	// Items
+	bool hasSling: 0x4EEBA4;
+	bool hasTorch: 0x4EEBC0;
+	bool hasPickaxes: 0x4EEBDC;
+	bool hasTNT: 0x4EEBF8;
+	bool hasShield: 0x4EEC14;
+	bool hasRaft: 0x4EEC30;
+	bool hasGasMask: 0x4EEC4C;
+	bool hasCanteen: 0x4EEC68;
+
 	// This seems to be related to the "forced to walk" state that happens before and after loading zones
 	// bool isForcedWalk: 0x517084;
+
 	// Current idols. Has some issues:
 	// - The number vary wildly during the plane cinematic and when spit out of a hole/croc
 	// - Gets zero'd and added back upon load
@@ -36,6 +48,17 @@ startup { // When the script loads
 	settings.Add("SplitOnIdol", false, "Split on Idol collection");
 	settings.Add("SplitOnExplorer", true, "Only on Explorer Idols", "SplitOnIdol");
 	settings.Add("UnsplitOnDeath", false, "Automatically undo Idol and Shaman split on death (experimental)");
+
+	settings.Add("SplitOnItems", false, "Split on item collection");
+	settings.Add("SplitOnCanteen", true, "Split on Canteen", "SplitOnItems");
+	settings.Add("SplitOnSling", true, "Split on Sling", "SplitOnItems");
+	settings.Add("SplitOnTorch", true, "Split on Torch", "SplitOnItems");
+	settings.Add("SplitOnShield", true, "Split on Shield", "SplitOnItems");
+	settings.Add("SplitOnGasMask", true, "Split on Gas Mask", "SplitOnItems");
+	settings.Add("SplitOnRaft", true, "Split on Raft", "SplitOnItems");
+	settings.Add("SplitOnPickaxes", true, "Split on Pickaxes", "SplitOnItems");
+	settings.Add("SplitOnTNT", true, "Split on TNT", "SplitOnItems");
+	settings.Add("IncludeStClaire", true, "Include St. Claire's Excavation Camp item collection", "SplitOnItems");
 
 	/*
 		2, 4, 8, 16, 32, // Extra Health
@@ -153,9 +176,10 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 
 	if (settings["NativeGamesStart"] &&
 		!vars.nativeGamesStarted &&
-		vars.isNativeGame(current.zone)) {
-			if (settings["DebugLogs"]) print("Native Games started");
-			return vars.nativeGamesStarted = true;
+		vars.isNativeGame(current.zone)
+	) {
+		if (settings["DebugLogs"]) print("Native Games started");
+		return vars.nativeGamesStarted = true;
 	}
 
 	if (current.puscaHealth == 0 && old.puscaHealth == 1) {
@@ -173,10 +197,11 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 
 	if (idolsGained == 1 &&
 		(settings["SplitOnIdol"] && !settings["SplitOnExplorer"] ||
-		settings["NativeGamesIdol"] && vars.isNativeGame(current.zone))) {
-			vars.unsplitOnDeathCount++;
-			if (settings["DebugLogs"]) print("Split on Idol");
-			return true;
+		settings["NativeGamesIdol"] && vars.isNativeGame(current.zone))
+	) {
+		vars.unsplitOnDeathCount++;
+		if (settings["DebugLogs"]) print("Split on Idol");
+		return true;
 	}
 
 	if (settings["SplitOnShaman"] && vars.isValidShamanPrice(-idolsGained)) {
@@ -184,6 +209,44 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		if (settings["DebugLogs"]) print("Split on Shaman");
 		return true;
 	};
+
+	if (settings["IncludeStClaire"] ||
+	  // Daytime && Nighttime
+		(current.zone != 0xBA9370DF && current.zone != 0x72AD42FA)
+	) {
+		if (settings["SplitOnCanteen"] && current.hasCanteen && !old.hasCanteen) {
+			if (settings["DebugLogs"]) print("Split on Canteen");
+			return true;
+		}
+		if (settings["SplitOnSling"] && current.hasSling && !old.hasSling) {
+			if (settings["DebugLogs"]) print("Split on Sling");
+			return true;
+		}
+		if (settings["SplitOnTorch"] && current.hasTorch && !old.hasTorch) {
+			if (settings["DebugLogs"]) print("Split on Torch");
+			return true;
+		}
+		if (settings["SplitOnShield"] && current.hasShield && !old.hasShield) {
+			if (settings["DebugLogs"]) print("Split on Shield");
+			return true;
+		}
+		if (settings["SplitOnGasMask"] && current.hasGasMask && !old.hasGasMask) {
+			if (settings["DebugLogs"]) print("Split on Gas Mask");
+			return true;
+		}
+		if (settings["SplitOnRaft"] && current.hasRaft && !old.hasRaft) {
+			if (settings["DebugLogs"]) print("Split on Raft");
+			return true;
+		}
+		if (settings["SplitOnPickaxes"] && current.hasPickaxes && !old.hasPickaxes) {
+			if (settings["DebugLogs"]) print("Split on Pickaxes");
+			return true;
+		}
+		if (settings["SplitOnTNT"] && current.hasTNT && !old.hasTNT) {
+			if (settings["DebugLogs"]) print("Split on TNT");
+			return true;
+		}
+	}
 }
 
 isLoading { // Pauses the Game Timer upon returning true
