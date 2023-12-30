@@ -19,3 +19,9 @@ These are the autosplitters I didn't publish officially, either because they're 
 - **[Pony Island](https://github.com/Avasam/Avasam.Autosplitters/tree/main/Pony%20Island)**  
 - **[The Talos Principle](https://github.com/Avasam/Autosplitters#the-talos-principle)**  
 - **[Bio Miracle Bokutte Upa](https://github.com/HyperFluxQc/AutoSplitters)**  
+
+## Image-based autosplitter
+
+- [AutoSplit (my updated fork)](https://github.com/Avasam/AutoSplit)
+- [AutoSplit (Toufool's original)](https://github.com/Toufool/AutoSplit)
+- [AutoSplit's LiveSplit integration component](https://github.com/Toufool/LiveSplit.AutoSplitIntegration)
