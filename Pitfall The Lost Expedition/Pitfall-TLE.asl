@@ -40,6 +40,7 @@ startup { // When the script loads
 	settings.Add("DebugLogs", false, "Print debug logs in DbgView", "Reminder");
 
 	settings.Add("SplitOnLoad", true, "Split on Loading Screen (except the first one)");
+	settings.Add("DontSplitOnCutsceneLoad", false, "Except for loads that only contains a cutscene or running forward", "SplitOnLoad");
 	settings.Add("SplitOnPusca", true, "Split on Defeating Pusca");
 
 	settings.Add("SplitOnShaman", false, "Split on buying from Shaman (except Mystery Item)");
@@ -79,6 +80,9 @@ startup { // When the script loads
 		return true;
 	});
 
+	vars.isCustsceneLoad = (Func<uint, bool>)((uint zoneId) =>
+		vars.custsceneLoadZoneIDs.Remove(zoneId));
+
 	var nativeGamesZoneIDs = new uint[] {
 		0xE411440A, // KaBOOM!
 		0x0D72E13F, // Tuco Shoot
@@ -94,6 +98,16 @@ startup { // When the script loads
 		vars.nativeGamesStarted = false;
 		vars.ignoreResetForCredits = false;
 		vars.unsplitOnDeathCount = 0;
+		vars.custsceneLoadZoneIDs = new HashSet<uint> {
+			0xEE8F6900, // Plane Crash
+			0xABD7CCD8, // Altar of Ages
+			0x6F498BBD, // Viracocha Monoliths
+			0x02C7B675, // Monkey Temple (Monkey)
+			0x1F237F32, // Penguin Temple (Penguin)
+			0x0305DC42, // Scorpion Temple (Scorpion)
+			0x72AD42FA, // Escavation Camp Night
+			0x99885996, // Ruins of El Dorado (Supai)
+		};
 		print("Ran Reset method");
 	};
 	reset();
@@ -160,6 +174,11 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 			vars.firstLoadingSkipped = true;
 			return false;
 		}
+
+		if (settings["DontSplitOnCutsceneLoad"] && vars.isCustsceneLoad(current.zone)) {
+			return false;
+		}
+
 		return settings["SplitOnLoad"];
 	};
 
@@ -211,7 +230,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 	};
 
 	if (settings["IncludeStClaire"] ||
-	  // Daytime && Nighttime
+		// Daytime && Nighttime
 		(current.zone != 0xBA9370DF && current.zone != 0x72AD42FA)
 	) {
 		if (settings["SplitOnCanteen"] && current.hasCanteen && !old.hasCanteen) {
