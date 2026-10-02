@@ -2,6 +2,8 @@
 
 LiveSplit AutoSplitter for WitchWay
 
+Requires LiveSplit 1.8.16 or later.
+
 - Speedrun page: [speedrun.com/witchway](https://www.speedrun.com/witchway)
 - Issues: [github.com/Avasam/Avasam.AutoSplitters/issues](https://github.com/Avasam/Avasam.AutoSplitters/issues)
 

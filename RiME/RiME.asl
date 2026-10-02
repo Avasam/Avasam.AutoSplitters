@@ -256,9 +256,11 @@ startup { // When the script loads
 	vars.fileWatcher.Changed += OnGameSave;
 	#endregion
 
-	// Since it's not always safe to assume a user's script goes through the start{} & reset{} blocks,
-	// we must use an EventHandler and subscribe it to timer events. This covers manual starting/resetting.
-	vars.OnStart = (EventHandler)((s, e) => {
+	// Replaced in init. Placeholder so starting the timer before the game is found doesn't throw.
+	vars.updateVariables = (Action)(() => {});
+
+	// Called by onStart, and by init when the script is reloaded mid-run or the timer was started before the game.
+	vars.onTimerStart = (Action)(() => {
 		// Start listening to file events when the timer starts
 		vars.updateVariables();
 		vars.fileWatcher.EnableRaisingEvents = true;
@@ -268,16 +270,6 @@ startup { // When the script loads
 		vars.completedSplits.Clear();
 		vars.stopWatch.Reset();
 	});
-	timer.OnStart += vars.OnStart;
-
-	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) => {
-		vars.isLoading = false;
-		vars.startDelay = -1;
-		vars.stopWatch.Reset();
-		// Stop watching when timer isn't running
-		vars.fileWatcher.EnableRaisingEvents = false;
-	});
-	timer.OnReset += vars.OnReset;
 }
 
 init { // When the game is found
@@ -326,7 +318,7 @@ init { // When the game is found
 				}
 			}
 
-			Func<System.Text.RegularExpressions.Regex, int> findAmmount = (pattern) => {
+			Func<System.Text.RegularExpressions.Regex, int> findAmount = (pattern) => {
 				var match = pattern
 					.Matches(fileContent)
 					.Cast<System.Text.RegularExpressions.Match>()
@@ -335,8 +327,8 @@ init { // When the game is found
 				return (int) new UTF8Encoding().GetBytes(match).LastOrDefault();
 			};
 
-			var savePointsAmount = findAmmount(savePointsRegex);
-			var secretsAmount = findAmmount(secretsRegex);
+			var savePointsAmount = findAmount(savePointsRegex);
+			var secretsAmount = findAmount(secretsRegex);
 
 			var fileList = new System.Text.RegularExpressions
 				.Regex(@"[^a-zA-Z\d-_]+")
@@ -436,14 +428,25 @@ init { // When the game is found
 	});
 	#endregion
 
-	// Ensures splitting still works if refreshing this script with an active timer.
-	if (timer.CurrentPhase == TimerPhase.Running) vars.OnStart(null, null);
+	// Ensures splitting still works if refreshing this script with an active timer,
+	// or if the timer was started before the game.
+	if (timer.CurrentPhase == TimerPhase.Running) vars.onTimerStart();
 }
 
 shutdown { // When the script unloads
-	timer.OnReset -= vars.OnReset;
-	timer.OnStart -= vars.OnStart;
 	vars.fileWatcher.Dispose();
+}
+
+onStart { // When the timer starts, unlike start{} also on manual starts
+	vars.onTimerStart();
+}
+
+onReset { // When the timer resets, unlike reset{} also on manual resets
+	vars.isLoading = false;
+	vars.startDelay = -1;
+	vars.stopWatch.Reset();
+	// Stop watching when timer isn't running
+	vars.fileWatcher.EnableRaisingEvents = false;
 }
 
 // Main methods

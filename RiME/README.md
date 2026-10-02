@@ -2,6 +2,8 @@
 
 LiveSplit AutoSplitter for RiME on PC
 
+Requires LiveSplit 1.8.16 or later.
+
 - Speedrun page: [speedrun.com/rime](https://www.speedrun.com/rime)
 - [Discord: ![RiME Discord](https://badgen.net/discord/members/Qe2RYNM)](https://discord.gg/Qe2RYNM)
 - Issues: [github.com/Avasam/Avasam.AutoSplitters/issues](https://github.com/Avasam/Avasam.AutoSplitters/issues)

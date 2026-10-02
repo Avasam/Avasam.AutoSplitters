@@ -2,6 +2,8 @@
 
 LiveSplit AutoSplitter and Load Remover for Pitfall: The Lost Expedition on PC
 
+Requires LiveSplit 1.8.16 or later.
+
 - Speedrun page: [speedrun.com/ptle](https://www.speedrun.com/ptle)
 - [Discord: ![Pitfall: The Lost Expedition Discord](https://badgen.net/discord/members/NEVJPZk)](https://discord.gg/NEVJPZk)
 - Issues: [github.com/Avasam/Avasam.AutoSplitters/issues](https://github.com/Avasam/Avasam.AutoSplitters/issues)
