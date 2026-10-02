@@ -42,15 +42,6 @@ startup { // When the script loads
 	// A generic Stopwatch to wait a certain amount of time in some circumstances.
 	vars.stopWatch = new Stopwatch();
 	vars.timerModel = new TimerModel{CurrentState = timer};
-	
-	vars.OnStart = (EventHandler)((s, e) => {
-		// Cleanup
-		vars.bucketStopUnlocked_2 = false;
-		vars.bucketStopUnlocked_3 = false;
-		vars.bucketStopUnlocked_4 = false;
-		vars.stopWatch.Reset();
-	});
-	timer.OnStart += vars.OnStart;
 }
 
 init { // When the game is found
@@ -116,8 +107,12 @@ init { // When the game is found
 	vars.stopWatch.Restart();
 }
 
-shutdown { // When the script unloads
-	timer.OnStart -= vars.OnStart;
+onStart { // When the timer starts, unlike start{} also on manual starts
+	// Cleanup
+	vars.bucketStopUnlocked_2 = false;
+	vars.bucketStopUnlocked_3 = false;
+	vars.bucketStopUnlocked_4 = false;
+	vars.stopWatch.Reset();
 }
 
 exit { // When the game closes
@@ -125,7 +120,7 @@ exit { // When the game closes
 }
 
 /* Main methods */
-update { // Returning false blocks everything but split
+update { // Returning false skips start, split, reset, isLoading and gameTime
 	var sBuilder = new StringBuilder();
 
 	foreach (var watcher in vars.watchers) {
