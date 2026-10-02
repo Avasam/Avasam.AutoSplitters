@@ -1,12 +1,55 @@
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Beslogic Inc.
+
+// The source skeleton for this configuration can be found at
+// https://github.com/BesLogic/shared-configs/blob/main/.vscode/settings.json
+// Modifications to this file that are not project-specific should also be done upstream.
+
 {
+	/*
+	 * General
+	 */
+	"editor.rulers": [80, 100],
 	"editor.detectIndentation": false,
-	"editor.insertSpaces": false,
 	"editor.tabSize": 2,
-	"editor.formatOnSave": true,
+	"editor.insertSpaces": false,
+	"editor.comments.insertSpace": true,
+	"files.eol": "\r\n", // ASL only runs on the original LiveSplit, a Windows application
 	"files.insertFinalNewline": true,
 	"files.trimFinalNewlines": true,
-	"editor.rulers": [
-		80,
-		120
-	]
+	"files.trimTrailingWhitespace": true,
+	"editor.bracketPairColorization.enabled": true,
+	"editor.formatOnSave": true,
+	"editor.formatOnSaveMode": "file",
+
+	/*
+	 * Git
+	 */
+	"[git-commit]": {
+		"editor.rulers": [72],
+	},
+	"[diff]": {
+		"files.trimTrailingWhitespace": false,
+	},
+
+	// NOTE: due to a bug in VSCode, we have to specify editor.defaultFormatter individually to ensure
+	// it overrides user settings. Please upvote: https://github.com/microsoft/vscode/issues/168411
+
+	/*
+	 * Markdown
+	 */
+	"[markdown]": {
+		"files.trimTrailingWhitespace": false,
+		"editor.defaultFormatter": "dprint.dprint",
+	},
+
+	/*
+	 * JSON
+	 */
+	"[json]": {
+		"editor.defaultFormatter": "dprint.dprint",
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "dprint.dprint",
+	},
 }

@@ -54,7 +54,7 @@ state("PROCESS_NAME", "OPTIONAL_VERSION") {
 ## Actions
 
 | Action | Runs | Return value |
-| --- | --- | --- |
+| - | - | - |
 | `startup` | Once when the script loads | none. Only place to call `settings.Add` |
 | `shutdown` | Script unloaded or reloaded | none |
 | `init` | Each time a matching process is found | none. Throwing retries `init` |

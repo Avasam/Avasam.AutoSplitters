@@ -1,5 +1,43 @@
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Beslogic Inc.
+
+// The source skeleton for this configuration can be found at
+// https://github.com/BesLogic/shared-configs/blob/main/.vscode/extensions.json
+// Modifications to this file that are not project-specific should also be done upstream.
+
 {
+	// See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+	// List of extensions which should be recommended for users of this workspace.
+	// Only keep those used by your specific project
 	"recommendations": [
-		"b0sh.asl-extension"
-	]
+		// General
+		"dprint.dprint",
+		"eamodio.gitlens",
+		"editorconfig.editorconfig",
+		"pkief.material-icon-theme",
+		// GitHub
+		"bierner.github-markdown-preview",
+		//
+		// Add your project's framework-specific and project-specific extensions under here
+		"b0sh.asl-extension",
+	],
+	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+	// Developpers should uninstall or disable the following extensions for this workspace
+	// https://github.com/microsoft/vscode/issues/40239
+	"unwantedRecommendations": [
+		// Must disable in this workspace //
+		// https://github.com/microsoft/vscode/issues/40239 //
+		//
+		// VSCode has implemented an optimized version
+		"coenraads.bracket-pair-colorizer",
+		"coenraads.bracket-pair-colorizer-2",
+		"shardulm94.trailing-spaces",
+		// Lots of conflicts
+		"esbenp.prettier-vscode",
+		//
+		// Don't recommend to autoinstall //
+		//
+		// Prefer using VSCode itself as a text editor
+		"vscodevim.vim",
+	],
 }

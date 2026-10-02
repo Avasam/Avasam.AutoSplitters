@@ -1,9 +1,40 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2026 Beslogic Inc.
+
+# The source skeleton for this configuration can be found at
+# https://github.com/BesLogic/shared-configs/blob/main/.editorconfig
+# Modifications to this file that are not project-specific should also be done upstream.
+
+# Editor configuration, see https://editorconfig.org
 root = true
 
 [*]
-# ASL only runs on the original LiveSplit, a Windows application
-end_of_line = crlf
-insert_final_newline = true
-charset = utf-8
+#### Widely Supported by Editors ####
+#### https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties#widely-supported-by-editors
+
 indent_style = tab
 indent_size = 2
+# tab_width defaults indent_size when indent_size is a number, but VS will add it back
+tab_width = 2
+# ASL only runs on the original LiveSplit, a Windows application
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+#### Supported By A Limited Number of Editors ####
+#### https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties#supported-by-a-limited-number-of-editors
+
+max_line_length = 100
+
+#### Language-specific overrides ####
+
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+
+# Splits files, as written by LiveSplit
+[*.lss]
+indent_style = space
+charset = utf-8-bom
+insert_final_newline = unset
