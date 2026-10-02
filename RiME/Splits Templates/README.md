@@ -23,61 +23,61 @@ Using the Any% template, replace `-Tilt Clip 1` by `-Underwater Caves`. Also rep
 
 These are the splits that are identical between categories, meaning that you can sync your golds in both.
 
-| Any% <--> NMS | NMS <--> 100% | Any% <--> 100%
-| - | - | -
-| Hill | ... | ...
-| ... | Statue 1 | ...
-| ... | Amphitheatre | ...
-| ... | ... | ...
-| ... | Key 1 | ...
-| Tree | Tree | Tree
-| Key 2 | Key 2 | Key 2
-| Staircase | Staircase | Staircase
-| Sundial | Sundial | Sundial
-| Throne | ... | ...
-| Wind | ... | ...
-| Labyrinth | ... | ...
-| {Denial} Spiral | {Denial} Spiral | {Denial} Spiral
-| Memory | Memory | Memory
-| Balcony | Balcony | Balcony
-| ... | ... | ...
-| ... | Key 2 | ...
-| ... | ... | ...
-| ... | Pool | ...
-| ... | Windmill 2 | ...
-| ... | ... | ...
-| ... | Shelters | ...
-| ... | Climb | ...
-| {Anger} Spiral | ... | ...
-| Memory | Memory | Memory
-| Hallway | ... | ...
-| *Sinkhole*\* | ... | ...
-| *Chimney*\* | ... | ...
-| Sentinel | Sentinel | Sentinel
-| Shades | Shades | Shades
-| *Queen's Hall*\* | Queen's Hall | *Queen's Hall*\*
-| *Tree*\* | Tree | *Tree*\*
-| *Sentinel Head*\* | Sentinel Head | *Sentinel Head*\*
-| *Sentinel Body*\* | Sentinel Body | *Sentinel Body*\*
-| *Escort 1 (screwdriver)*\* | ... | ...
-| *Escort 2 (elevator)*\* | ... | ...
-| *Escort 3 (queen's)*\* | ... | ...
-| *Escort 4 (shades)*\* | ... | ...
-| *Orb*\* | Orb | *Orb*\*
-| Race | ... | ...
-| {Bargaining} Spiral | {Bargaining} Spiral | {Bargaining} Spiral
-| Memory | Memory | Memory
-| Ride | ... | ...
-| Shades Skip | ... | ...
-| Gate | ... | ...
-| Necropolis | Necropolis | Necropolis
-| Statue 1 | ... | ...
-| Statue 2 | Statue 2 | Statue 2
-| Statue 3 | Statue 3 | Statue 3
-| Statue 4 | ... | ...
-| Chains | ... | ...
-| {Depression} Spiral | {Depression} Spiral | {Depression} Spiral
-| Memory | Memory | Memory
-| {Acceptance} Let Go | {Acceptance} Let Go | {Acceptance} Let Go
+| Any% <--> NMS | NMS <--> 100% | Any% <--> 100% |
+| - | - | - |
+| Hill | ... | ... |
+| ... | Statue 1 | ... |
+| ... | Amphitheatre | ... |
+| ... | ... | ... |
+| ... | Key 1 | ... |
+| Tree | Tree | Tree |
+| Key 2 | Key 2 | Key 2 |
+| Staircase | Staircase | Staircase |
+| Sundial | Sundial | Sundial |
+| Throne | ... | ... |
+| Wind | ... | ... |
+| Labyrinth | ... | ... |
+| {Denial} Spiral | {Denial} Spiral | {Denial} Spiral |
+| Memory | Memory | Memory |
+| Balcony | Balcony | Balcony |
+| ... | ... | ... |
+| ... | Key 2 | ... |
+| ... | ... | ... |
+| ... | Pool | ... |
+| ... | Windmill 2 | ... |
+| ... | ... | ... |
+| ... | Shelters | ... |
+| ... | Climb | ... |
+| {Anger} Spiral | ... | ... |
+| Memory | Memory | Memory |
+| Hallway | ... | ... |
+| _Sinkhole_\* | ... | ... |
+| _Chimney_\* | ... | ... |
+| Sentinel | Sentinel | Sentinel |
+| Shades | Shades | Shades |
+| _Queen's Hall_\* | Queen's Hall | _Queen's Hall_\* |
+| _Tree_\* | Tree | _Tree_\* |
+| _Sentinel Head_\* | Sentinel Head | _Sentinel Head_\* |
+| _Sentinel Body_\* | Sentinel Body | _Sentinel Body_\* |
+| _Escort 1 (screwdriver)_\* | ... | ... |
+| _Escort 2 (elevator)_\* | ... | ... |
+| _Escort 3 (queen's)_\* | ... | ... |
+| _Escort 4 (shades)_\* | ... | ... |
+| _Orb_\* | Orb | _Orb_\* |
+| Race | ... | ... |
+| {Bargaining} Spiral | {Bargaining} Spiral | {Bargaining} Spiral |
+| Memory | Memory | Memory |
+| Ride | ... | ... |
+| Shades Skip | ... | ... |
+| Gate | ... | ... |
+| Necropolis | Necropolis | Necropolis |
+| Statue 1 | ... | ... |
+| Statue 2 | Statue 2 | Statue 2 |
+| Statue 3 | Statue 3 | Statue 3 |
+| Statue 4 | ... | ... |
+| Chains | ... | ... |
+| {Depression} Spiral | {Depression} Spiral | {Depression} Spiral |
+| Memory | Memory | Memory |
+| {Acceptance} Let Go | {Acceptance} Let Go | {Acceptance} Let Go |
 
 *If not doing Tilt Clip

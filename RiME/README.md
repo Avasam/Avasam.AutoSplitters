@@ -1,6 +1,10 @@
 # RiME AutoSplitter
 
-LiveSplit AutoSplitter for RiME on PC  
+LiveSplit AutoSplitter for RiME on PC
+
+- Speedrun page: [speedrun.com/rime](https://www.speedrun.com/rime)
+- [Discord: ![RiME Discord](https://badgen.net/discord/members/Qe2RYNM)](https://discord.gg/Qe2RYNM)
+- Issues: [github.com/Avasam/Avasam.AutoSplitters/issues](https://github.com/Avasam/Avasam.AutoSplitters/issues)
 
 ## Limitations
 
@@ -10,3 +14,7 @@ LiveSplit AutoSplitter for RiME on PC
 ## Recommended splits
 
 [Tech](https://www.speedrun.com/user/Tech) and I created splits templates with short names. The number of splits is what's important, you can rename the splits and the category to your liking. See the [Splits Templates](https://github.com/Avasam/Avasam.Autosplitters/tree/main/RiME/Splits%20Templates) folder.
+
+## Changelog
+
+See the [commit history](https://github.com/Avasam/Avasam.AutoSplitters/commits/main/RiME).
