@@ -74,7 +74,7 @@ init { // When the game is found
 }
 
 // Main methods
-update { // Returning false blocks everything but split
+update { // Returning false skips start, split, reset, isLoading and gameTime
 	vars.LevelId.Update(game);
 
 	if (vars.LevelId.Current == 13 &&

@@ -80,8 +80,8 @@ startup { // When the script loads
 		return true;
 	});
 
-	vars.isCustsceneLoad = (Func<uint, bool>)((uint zoneId) =>
-		vars.custsceneLoadZoneIDs.Remove(zoneId));
+	vars.isCutsceneLoad = (Func<uint, bool>)((uint zoneId) =>
+		vars.cutsceneLoadZoneIDs.Remove(zoneId));
 
 	var nativeGamesZoneIDs = new uint[] {
 		0xE411440A, // KaBOOM!
@@ -98,21 +98,20 @@ startup { // When the script loads
 		vars.nativeGamesStarted = false;
 		vars.ignoreResetForCredits = false;
 		vars.unsplitOnDeathCount = 0;
-		vars.custsceneLoadZoneIDs = new HashSet<uint> {
+		vars.cutsceneLoadZoneIDs = new HashSet<uint> {
 			0xEE8F6900, // Plane Crash
 			0xABD7CCD8, // Altar of Ages
 			0x6F498BBD, // Viracocha Monoliths
 			0x02C7B675, // Monkey Temple (Monkey)
 			0x1F237F32, // Penguin Temple (Penguin)
 			0x0305DC42, // Scorpion Temple (Scorpion)
-			0x72AD42FA, // Escavation Camp Night
+			0x72AD42FA, // Excavation Camp Night
 			0x99885996, // Ruins of El Dorado (Supai)
 		};
 		print("Ran Reset method");
 	};
 	reset();
-	vars.OnReset = (LiveSplit.Model.Input.EventHandlerT<TimerPhase>)((s, e) => reset());
-	timer.OnReset += vars.OnReset;
+	vars.reset = reset;
 	vars.timerModel = new TimerModel{CurrentState = timer};
 }
 
@@ -120,12 +119,12 @@ init { // When the game is found
 	// print("============================= INITIALISATION =============================");
 }
 
-shutdown { // When the script unloads
-	timer.OnReset -= vars.OnReset;
+onReset { // When the timer resets, unlike reset{} also on manual resets
+	vars.reset();
 }
 
 /* Main methods */
-update { // Returning false blocks everything but split
+update { // Returning false skips start, split, reset, isLoading and gameTime
 	// Some debugging logs
 	if (settings["DebugLogs"]) {
 		var idolsGained = current.idolsCount - old.idolsCount;
@@ -175,7 +174,7 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 			return false;
 		}
 
-		if (settings["DontSplitOnCutsceneLoad"] && vars.isCustsceneLoad(current.zone)) {
+		if (settings["DontSplitOnCutsceneLoad"] && vars.isCutsceneLoad(current.zone)) {
 			return false;
 		}
 
