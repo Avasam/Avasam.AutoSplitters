@@ -1,9 +1,17 @@
 state("PITFALL The Lost Expedition") {
-	// 0x5170CC follows the current zone, but not always exactly at the same time. 0 on first Jaguar. Might be related to save.
+	// Names and offsets are from DaveUltra's PC Ghidra project and PTLE_Mods SDK
+	// https://github.com/DaveUltra/ptle
+	// Image base is 0x400000, so module offset 0x517028 is the game's global struct at 0x917028.
+
+	// GlobalStruct + 0x60, m_currentLevelCRC: the current level's CRC, 0 in the main menu and credits.
+	// Not used: GlobalStruct + 0xA4 (0x5170CC), m_nextLevelCRC, is the level being loaded, so it
+	// changes before this one. Observed 0 on the first Jaguar.
 	uint zone: 0x517088;
+	// Resource prefetcher thread struct (0x5236B8) + 0x7D, a bool with no name yet.
 	bool isLoading: 0x523735;
 
-	// Items
+	// Items: an array of 0x1C byte ItemStruct at 0x4EEB90, m_unlocked (int) at + 0x14.
+	// Read as bool, which is the int's low byte: enough, since it only holds 0 or 1.
 	bool hasSling: 0x4EEBA4;
 	bool hasTorch: 0x4EEBC0;
 	bool hasPickaxes: 0x4EEBDC;
@@ -16,20 +24,16 @@ state("PITFALL The Lost Expedition") {
 	// This seems to be related to the "forced to walk" state that happens before and after loading zones
 	// bool isForcedWalk: 0x517084;
 
-	// Current idols. Has some issues:
-	// - The number vary wildly during the plane cinematic and when spit out of a hole/croc
-	// - Gets zero'd and added back upon load
-	// - Buying a Shaman item and dying adds back the idol count (expected behaviour, but still an issue for us)
-	// There is a value in memory that doesn't have the first two issues, however, it will change place in memory upon death.
-	// For that reason, I haven't been able to produce a pointermap for it yet.
-	// However, watching for address changes works great.
-	byte idolsCount: 0x5170A0, 0x5C, 0x0, 0x18, 0x39C;
-	uint idolsCountPtr: 0x5170A0, 0x5C, 0x0, 0x18;
-	// Current health. Has some quirks:
-	// - Gets zero'd and added back upon load and when going back to menu
-	byte harryHealth: 0x5170A0, 0x638;
-	// Alternative: byte puscaHealth: 0x51A940, 0x0, 0x2A0, 0x30, 0x63C;
-	byte puscaHealth: 0x51A940, 0x0, 0x3D4, 0x38, 0x63C;
+	// GlobalStruct + 0x78, m_harry: the EIHarry instance. Harry is recreated on death and on load,
+	// so this pointer changes then. His constructor zeroes his fields, and EIHarry_LoadSavedValues
+	// fills them later.
+	uint harryPtr: 0x5170A0;
+	// EIHarry + 0x1900, m_idolsCollected: the count that collecting adds to and buying from a
+	// Shaman takes from. Buying a Shaman item and dying gives the idols back (expected
+	// behaviour, but still an issue for us).
+	int idolsCount: 0x5170A0, 0x1900;
+	// EIPlayer + 0x638, m_healthValue. Zero'd on load and when going back to menu.
+	int harryHealth: 0x5170A0, 0x638;
 }
 
 startup { // When the script loads
@@ -117,6 +121,30 @@ startup { // When the script loads
 
 init { // When the game is found
 	// print("============================= INITIALISATION =============================");
+	var baseAddress = modules.First().BaseAddress;
+	// vtable_EIPusca. Exact class match, so EIPuscaMinion is skipped.
+	var puscaVtable = baseAddress + 0x493EA8;
+	vars.puscaVtable = puscaVtable;
+	// Same walk as PTLE_Mods' GizmodWorld::getEntitiesOfType
+	vars.findPusca = (Func<IntPtr>)(() => {
+		// GlobalStruct + 0x4, a level controller whose first field is the ERLevel
+		var level = memory.ReadPointer(memory.ReadPointer(baseAddress + 0x51702C));
+		if (level == IntPtr.Zero) return IntPtr.Zero;
+		// ERLevel + 0x59C, m_entitiesByID: a HashMap, m_iterateFirst at + 0x4, m_size at + 0x10.
+		// Capped in case the level is mid teardown and the size is garbage.
+		var entry = memory.ReadPointer(level + 0x59C + 0x4);
+		var size = Math.Min(memory.ReadValue<int>(level + 0x59C + 0x10), 0x10000);
+		// HashMapEntry: m_iterateNext at + 0x0, m_ptr at + 0x10
+		for (var i = 0; i < size && entry != IntPtr.Zero; i++, entry = memory.ReadPointer(entry)) {
+			var entity = memory.ReadPointer(entry + 0x10);
+			if (entity != IntPtr.Zero && memory.ReadPointer(entity) == puscaVtable) return entity;
+		}
+		return IntPtr.Zero;
+	});
+	vars.puscaPtr = IntPtr.Zero;
+	vars.puscaScanCooldown = 0;
+	// Set in update{}, seeded so old has it on the first update{}
+	current.puscaHealth = -1;
 }
 
 onReset { // When the timer resets, unlike reset{} also on manual resets
@@ -125,6 +153,25 @@ onReset { // When the timer resets, unlike reset{} also on manual resets
 
 /* Main methods */
 update { // Returning false skips start, split, reset, isLoading and gameTime
+	// -1 while Pusca isn't found, so losing him (death, quit) never reads as his health hitting 0
+	current.puscaHealth = -1;
+	if (current.zone == 0xCFD2FE10) { // Ancient El Dorado (Pusca)
+		IntPtr puscaPtr = vars.puscaPtr;
+		if (puscaPtr != IntPtr.Zero && memory.ReadPointer(puscaPtr) != vars.puscaVtable) puscaPtr = IntPtr.Zero;
+		// Scan about once a second until found, not on every tick
+		if (puscaPtr == IntPtr.Zero && !current.isLoading && --vars.puscaScanCooldown <= 0) {
+			vars.puscaScanCooldown = 60;
+			puscaPtr = vars.findPusca();
+			if (settings["DebugLogs"] && puscaPtr != IntPtr.Zero) print("Pusca found: 0x" + puscaPtr.ToString("X8"));
+		}
+		vars.puscaPtr = puscaPtr;
+		// EIBeast + 0x63C, m_bossHealth
+		if (puscaPtr != IntPtr.Zero) current.puscaHealth = memory.ReadValue<int>(puscaPtr + 0x63C);
+	} else {
+		vars.puscaPtr = IntPtr.Zero;
+		vars.puscaScanCooldown = 0;
+	}
+
 	// Some debugging logs
 	if (settings["DebugLogs"]) {
 		var idolsGained = current.idolsCount - old.idolsCount;
@@ -136,8 +183,8 @@ update { // Returning false skips start, split, reset, isLoading and gameTime
 		if (current.zone != old.zone) debugString += "Zone change: 0x" + current.zone.ToString("X").PadLeft(8, '0') + Environment.NewLine;
 		if (current.isLoading && !old.isLoading) debugString += "Load start" + Environment.NewLine;
 		if (!current.isLoading && old.isLoading) debugString += "Load End" + Environment.NewLine;
-		if (current.idolsCountPtr != old.idolsCountPtr) {
-			debugString += "Idol count Pointer: 0x" + current.idolsCountPtr.ToString("X").PadLeft(8, '0') + Environment.NewLine;
+		if (current.harryPtr != old.harryPtr) {
+			debugString += "Harry pointer: 0x" + current.harryPtr.ToString("X").PadLeft(8, '0') + Environment.NewLine;
 		}
 		if (idolsGained != 0) debugString += "Idols gained: " + idolsGained + Environment.NewLine;
 		if (debugString != "") print(debugString);
@@ -181,8 +228,8 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		return settings["SplitOnLoad"];
 	};
 
-	// Don't run anything else if the pointer to current idol just changed or is null
-	if (current.idolsCountPtr == 0 || current.idolsCountPtr != old.idolsCountPtr) return;
+	// Don't run anything else if Harry was just recreated or doesn't exist
+	if (current.harryPtr == 0 || current.harryPtr != old.harryPtr) return;
 
 	if (current.harryHealth == 0 && old.harryHealth != 0) {
 		for (; vars.unsplitOnDeathCount > 0; vars.unsplitOnDeathCount--)
@@ -205,7 +252,11 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		if (settings["SplitOnPusca"]) return true;
 	};
 
-	var idolsGained = current.idolsCount - old.idolsCount;
+	// A new Harry reads 0 idols until his saved values load. Health loads after idols,
+	// so non-zero health on both ticks means both idol counts are real.
+	var idolsGained = old.harryHealth != 0 && current.harryHealth != 0
+		? current.idolsCount - old.idolsCount
+		: 0;
 
 	if (settings["SplitOnIdol"] && idolsGained == 5) {
 		vars.unsplitOnDeathCount++;
