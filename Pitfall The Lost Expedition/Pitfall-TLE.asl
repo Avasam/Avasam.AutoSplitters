@@ -34,10 +34,6 @@ state("PITFALL The Lost Expedition") {
 	int idolsCount: 0x5170A0, 0x1900;
 	// EIPlayer + 0x638, m_healthValue. Zero'd on load and when going back to menu.
 	int harryHealth: 0x5170A0, 0x638;
-	// EIBeast + 0x63C, m_bossHealth. Pusca has no global pointer, so this path goes through the
-	// event manager's callback array (0x51A940 + 0x0), whose index can depend on registration order.
-	// Alternative: 0x51A940, 0x0, 0x2A0, 0x30, 0x63C;
-	int puscaHealth: 0x51A940, 0x0, 0x3D4, 0x38, 0x63C;
 }
 
 startup { // When the script loads
@@ -125,6 +121,30 @@ startup { // When the script loads
 
 init { // When the game is found
 	// print("============================= INITIALISATION =============================");
+	var baseAddress = modules.First().BaseAddress;
+	// vtable_EIPusca. Exact class match, so EIPuscaMinion is skipped.
+	var puscaVtable = baseAddress + 0x493EA8;
+	vars.puscaVtable = puscaVtable;
+	// Same walk as PTLE_Mods' GizmodWorld::getEntitiesOfType
+	vars.findPusca = (Func<IntPtr>)(() => {
+		// GlobalStruct + 0x4, a level controller whose first field is the ERLevel
+		var level = memory.ReadPointer(memory.ReadPointer(baseAddress + 0x51702C));
+		if (level == IntPtr.Zero) return IntPtr.Zero;
+		// ERLevel + 0x59C, m_entitiesByID: a HashMap, m_iterateFirst at + 0x4, m_size at + 0x10.
+		// Capped in case the level is mid teardown and the size is garbage.
+		var entry = memory.ReadPointer(level + 0x59C + 0x4);
+		var size = Math.Min(memory.ReadValue<int>(level + 0x59C + 0x10), 0x10000);
+		// HashMapEntry: m_iterateNext at + 0x0, m_ptr at + 0x10
+		for (var i = 0; i < size && entry != IntPtr.Zero; i++, entry = memory.ReadPointer(entry)) {
+			var entity = memory.ReadPointer(entry + 0x10);
+			if (entity != IntPtr.Zero && memory.ReadPointer(entity) == puscaVtable) return entity;
+		}
+		return IntPtr.Zero;
+	});
+	vars.puscaPtr = IntPtr.Zero;
+	vars.puscaScanCooldown = 0;
+	// Set in update{}, seeded so old has it on the first update{}
+	current.puscaHealth = -1;
 }
 
 onReset { // When the timer resets, unlike reset{} also on manual resets
@@ -133,6 +153,25 @@ onReset { // When the timer resets, unlike reset{} also on manual resets
 
 /* Main methods */
 update { // Returning false skips start, split, reset, isLoading and gameTime
+	// -1 while Pusca isn't found, so losing him (death, quit) never reads as his health hitting 0
+	current.puscaHealth = -1;
+	if (current.zone == 0xCFD2FE10) { // Ancient El Dorado (Pusca)
+		IntPtr puscaPtr = vars.puscaPtr;
+		if (puscaPtr != IntPtr.Zero && memory.ReadPointer(puscaPtr) != vars.puscaVtable) puscaPtr = IntPtr.Zero;
+		// Scan about once a second until found, not on every tick
+		if (puscaPtr == IntPtr.Zero && !current.isLoading && --vars.puscaScanCooldown <= 0) {
+			vars.puscaScanCooldown = 60;
+			puscaPtr = vars.findPusca();
+			if (settings["DebugLogs"] && puscaPtr != IntPtr.Zero) print("Pusca found: 0x" + puscaPtr.ToString("X8"));
+		}
+		vars.puscaPtr = puscaPtr;
+		// EIBeast + 0x63C, m_bossHealth
+		if (puscaPtr != IntPtr.Zero) current.puscaHealth = memory.ReadValue<int>(puscaPtr + 0x63C);
+	} else {
+		vars.puscaPtr = IntPtr.Zero;
+		vars.puscaScanCooldown = 0;
+	}
+
 	// Some debugging logs
 	if (settings["DebugLogs"]) {
 		var idolsGained = current.idolsCount - old.idolsCount;
