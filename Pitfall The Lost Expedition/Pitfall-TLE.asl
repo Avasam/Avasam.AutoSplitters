@@ -1,9 +1,17 @@
 state("PITFALL The Lost Expedition") {
-	// 0x5170CC follows the current zone, but not always exactly at the same time. 0 on first Jaguar. Might be related to save.
+	// Names and offsets are from DaveUltra's PC Ghidra project and PTLE_Mods SDK
+	// https://github.com/DaveUltra/ptle
+	// Image base is 0x400000, so module offset 0x517028 is the game's global struct at 0x917028.
+
+	// GlobalStruct + 0x60, m_currentLevelCRC: the current level's CRC, 0 in the main menu and credits.
+	// Not used: GlobalStruct + 0xA4 (0x5170CC), m_nextLevelCRC, is the level being loaded, so it
+	// changes before this one. Observed 0 on the first Jaguar.
 	uint zone: 0x517088;
+	// Resource prefetcher thread struct (0x5236B8) + 0x7D, a bool with no name yet.
 	bool isLoading: 0x523735;
 
-	// Items
+	// Items: an array of 0x1C byte ItemStruct at 0x4EEB90, m_unlocked (int) at + 0x14.
+	// Read as bool, which is the int's low byte: enough, since it only holds 0 or 1.
 	bool hasSling: 0x4EEBA4;
 	bool hasTorch: 0x4EEBC0;
 	bool hasPickaxes: 0x4EEBDC;
@@ -16,20 +24,20 @@ state("PITFALL The Lost Expedition") {
 	// This seems to be related to the "forced to walk" state that happens before and after loading zones
 	// bool isForcedWalk: 0x517084;
 
-	// Current idols. Has some issues:
-	// - The number vary wildly during the plane cinematic and when spit out of a hole/croc
-	// - Gets zero'd and added back upon load
-	// - Buying a Shaman item and dying adds back the idol count (expected behaviour, but still an issue for us)
-	// There is a value in memory that doesn't have the first two issues, however, it will change place in memory upon death.
-	// For that reason, I haven't been able to produce a pointermap for it yet.
-	// However, watching for address changes works great.
-	byte idolsCount: 0x5170A0, 0x5C, 0x0, 0x18, 0x39C;
-	uint idolsCountPtr: 0x5170A0, 0x5C, 0x0, 0x18;
-	// Current health. Has some quirks:
-	// - Gets zero'd and added back upon load and when going back to menu
-	byte harryHealth: 0x5170A0, 0x638;
-	// Alternative: byte puscaHealth: 0x51A940, 0x0, 0x2A0, 0x30, 0x63C;
-	byte puscaHealth: 0x51A940, 0x0, 0x3D4, 0x38, 0x63C;
+	// GlobalStruct + 0x78, m_harry: the EIHarry instance. Harry is recreated on death and on load,
+	// so this pointer changes then. His constructor zeroes his fields, and EIHarry_LoadSavedValues
+	// fills them later.
+	uint harryPtr: 0x5170A0;
+	// EIHarry + 0x1900, m_idolsCollected: the count that collecting adds to and buying from a
+	// Shaman takes from. Buying a Shaman item and dying gives the idols back (expected
+	// behaviour, but still an issue for us).
+	int idolsCount: 0x5170A0, 0x1900;
+	// EIPlayer + 0x638, m_healthValue. Zero'd on load and when going back to menu.
+	int harryHealth: 0x5170A0, 0x638;
+	// EIBeast + 0x63C, m_bossHealth. Pusca has no global pointer, so this path goes through the
+	// event manager's callback array (0x51A940 + 0x0), whose index can depend on registration order.
+	// Alternative: 0x51A940, 0x0, 0x2A0, 0x30, 0x63C;
+	int puscaHealth: 0x51A940, 0x0, 0x3D4, 0x38, 0x63C;
 }
 
 startup { // When the script loads
@@ -136,8 +144,8 @@ update { // Returning false skips start, split, reset, isLoading and gameTime
 		if (current.zone != old.zone) debugString += "Zone change: 0x" + current.zone.ToString("X").PadLeft(8, '0') + Environment.NewLine;
 		if (current.isLoading && !old.isLoading) debugString += "Load start" + Environment.NewLine;
 		if (!current.isLoading && old.isLoading) debugString += "Load End" + Environment.NewLine;
-		if (current.idolsCountPtr != old.idolsCountPtr) {
-			debugString += "Idol count Pointer: 0x" + current.idolsCountPtr.ToString("X").PadLeft(8, '0') + Environment.NewLine;
+		if (current.harryPtr != old.harryPtr) {
+			debugString += "Harry pointer: 0x" + current.harryPtr.ToString("X").PadLeft(8, '0') + Environment.NewLine;
 		}
 		if (idolsGained != 0) debugString += "Idols gained: " + idolsGained + Environment.NewLine;
 		if (debugString != "") print(debugString);
@@ -181,8 +189,8 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		return settings["SplitOnLoad"];
 	};
 
-	// Don't run anything else if the pointer to current idol just changed or is null
-	if (current.idolsCountPtr == 0 || current.idolsCountPtr != old.idolsCountPtr) return;
+	// Don't run anything else if Harry was just recreated or doesn't exist
+	if (current.harryPtr == 0 || current.harryPtr != old.harryPtr) return;
 
 	if (current.harryHealth == 0 && old.harryHealth != 0) {
 		for (; vars.unsplitOnDeathCount > 0; vars.unsplitOnDeathCount--)
@@ -205,7 +213,11 @@ split { // Splits upon returning true if reset isn't explicitly returning true
 		if (settings["SplitOnPusca"]) return true;
 	};
 
-	var idolsGained = current.idolsCount - old.idolsCount;
+	// A new Harry reads 0 idols until his saved values load. Health loads after idols,
+	// so non-zero health on both ticks means both idol counts are real.
+	var idolsGained = old.harryHealth != 0 && current.harryHealth != 0
+		? current.idolsCount - old.idolsCount
+		: 0;
 
 	if (settings["SplitOnIdol"] && idolsGained == 5) {
 		vars.unsplitOnDeathCount++;
